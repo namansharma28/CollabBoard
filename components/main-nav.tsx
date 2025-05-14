@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { 
   LayoutGrid, 
@@ -48,17 +48,20 @@ const mainNavItems = [
 
 export function MainNav() {
   const pathname = usePathname();
+  const params = useParams();
+  const teamId = params.teamId as string;
 
   return (
     <nav className="flex items-center space-x-4 lg:space-x-6">
       {mainNavItems.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+        const href = teamId ? `/${teamId}${item.href}` : item.href;
+        const isActive = pathname === href || pathname?.startsWith(`${href}/`);
         
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={href}
             className={cn(
               "flex items-center text-sm font-medium transition-colors hover:text-primary",
               isActive

@@ -1,14 +1,40 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { BoardsList } from "@/components/boards/boards-list";
 import { CreateBoardDialog } from "@/components/boards/create-board-dialog";
 import { Plus, Search } from "lucide-react";
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function BoardsPage() {
+  const params = useParams();
+  const teamId = params.teamId as string;
+  const [boards, setBoards] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBoards = async () => {
+      try {
+        const response = await fetch(`/api/teams/${teamId}/boards`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch team data');
+        }        const data = await response.json();
+        setBoards(data.boards);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBoards();
+  }, [teamId]);
   const [open, setOpen] = useState(false);
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="flex flex-col space-y-6">

@@ -135,7 +135,7 @@ export default function TeamSelectionPage() {
                           <CardTitle>{team.name}</CardTitle>
                           <CardDescription>{team.description}</CardDescription>
                         </div>
-                        <Button onClick={() => router.push(`/dashboard?team=${team._id}`)}>
+                        <Button onClick={() => router.push(`/${team._id}/dashboard`)}>
                           Select
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>

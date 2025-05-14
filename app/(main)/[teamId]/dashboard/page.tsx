@@ -1,16 +1,45 @@
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Overview } from "@/components/dashboard/overview";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
+import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function DashboardPage() {
+  const params = useParams();
+  const teamId = params.teamId as string;
+  const [teamData, setTeamData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTeamData = async () => {
+      try {
+        const response = await fetch(`/api/teams/${teamId}/dashboard`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch team data');
+        }
+        const data = await response.json();
+        setTeamData(data);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeamData();
+  }, [teamId]);
+
+  if (loading) return <div>Loading...</div>;
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back! Here's an overview of your workspace.
+          Welcome back! Here is an overview of your workspace.
         </p>
       </div>
       
