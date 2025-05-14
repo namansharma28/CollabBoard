@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { NextAuthProvider } from '@/components/providers';
 import { Toaster as HotToaster } from "react-hot-toast";
+import { ToastProvider } from '@/components/ui/use-toast';
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '700'] });
 
@@ -23,9 +24,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <NextAuthProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            {children}
-            <Toaster />
-            <HotToaster position="top-center" />
+            <ToastProvider>
+              {children}
+              <Toaster />
+              <HotToaster position="top-center" />
+            </ToastProvider>
           </ThemeProvider>
         </NextAuthProvider>
       </body>

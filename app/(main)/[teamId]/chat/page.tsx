@@ -49,6 +49,7 @@ export default function ChatPage() {
   const socket = useRef<any>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [replyTo, setReplyTo] = useState<MessageType | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   // Fetch messages for current channel
   const fetchMessages = async () => {
@@ -69,36 +70,83 @@ export default function ChatPage() {
     }
   };
 
-  // Initial fetch and socket setup
+  // Initialize socket separately from fetching messages
   useEffect(() => {
-    fetchMessages();
-
+    if (socket.current) {
+      console.log("Cleaning up existing socket connection");
+      socket.current.disconnect();
+      socket.current = null;
+    }
+    
+    console.log("Initializing new socket connection");
+    
     // Connect to WebSocket with correct path
     socket.current = io({
       path: "/api/socket/io",
       addTrailingSlash: false,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 10000,
+      autoConnect: true,
+      forceNew: true // Force a new connection
     });
 
-    // Join team channel
-    socket.current.emit("join-team", teamId);
+    // Connection status
+    socket.current.on('connect', () => {
+      console.log('Connected to chat server with ID:', socket.current.id);
+      setIsConnected(true);
+      
+      // Join team channel after connection is established
+      socket.current.emit("join-team", teamId);
+      console.log("Joined team room:", teamId);
+      
+      // Fetch messages after successful connection
+      fetchMessages();
+    });
+    
+    socket.current.on('connect_error', (error: Error) => {
+      console.error('Connection error:', error);
+      setIsConnected(false);
+      toast.error("Connection error. Please refresh the page.");
+    });
+    
+    socket.current.on('disconnect', (reason: string) => {
+      console.log('Disconnected from chat server:', reason);
+      setIsConnected(false);
+    });
 
     // Listen for new messages
     socket.current.on("new-message", (message: MessageType) => {
+      console.log("Received new message:", message);
       if (message.channel === currentChannel) {
         setMessages((prev) => [...prev, message]);
       }
     });
+    
+    // Listen for message confirmations
+    socket.current.on("message-received", (confirmation: { id: string, status: string }) => {
+      console.log("Message received confirmation:", confirmation);
+    });
 
     socket.current.on("error", (error: string) => {
+      console.error("Socket error:", error);
       toast.error(error);
     });
 
     return () => {
       if (socket.current) {
+        console.log("Disconnecting socket on cleanup");
         socket.current.disconnect();
       }
     };
-  }, [teamId, currentChannel]);
+  }, [teamId]); // Only re-initialize when teamId changes
+  
+  // Fetch messages when channel changes
+  useEffect(() => {
+    if (isConnected) {
+      fetchMessages();
+    }
+  }, [currentChannel, isConnected]);
 
   // Auto scroll to bottom when new messages come
   useEffect(() => {
@@ -114,6 +162,11 @@ export default function ChatPage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !session?.user) return;
+    
+    if (!isConnected) {
+      toast.error("Not connected to chat server. Please wait or refresh the page.");
+      return;
+    }
 
     const msgPayload = {
       content: newMessage.trim(),
@@ -178,11 +231,20 @@ export default function ChatPage() {
       <div className="grid gap-4 mb-2 w-full max-w-full overflow-hidden">
         <Card className="max-w-full">
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center gap-2">
               # {currentChannel}
+              {isConnected && (
+                <div className="h-2 w-2 bg-green-500 rounded-full" title="Connected to chat server"></div>
+              )}
+              {!isConnected && (
+                <div className="h-2 w-2 bg-red-500 rounded-full" title="Disconnected from chat server"></div>
+              )}
             </CardTitle>
             <CardDescription>
               Channel for {currentChannel} team discussion
+              {!isConnected && (
+                <span className="text-red-500 text-xs ml-2">(Connecting to chat server...)</span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -274,7 +336,7 @@ export default function ChatPage() {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                 />
-                <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                <Button type="submit" size="icon" disabled={!newMessage.trim() || !isConnected}>
                   <Send className="h-4 w-4" />
                 </Button>
               </form>

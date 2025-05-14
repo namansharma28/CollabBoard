@@ -1,7 +1,32 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, CircleAlert, Clock, FileText, ListTodo, MessageSquare } from "lucide-react";
 
-export function DashboardStats() {
+interface DashboardStatsProps {
+  stats: {
+    tasks: {
+      total: number;
+      completed: number;
+      todo: number;
+      inProgress: number;
+      overdue: number;
+    };
+    notes: {
+      total: number;
+      updatedToday: number;
+    };
+    messages: {
+      total: number;
+      conversations: number;
+    };
+  };
+}
+
+export function DashboardStats({ stats }: DashboardStatsProps) {
+  // Calculate task completion percentage
+  const completionPercentage = stats.tasks.total > 0 
+    ? Math.round((stats.tasks.completed / stats.tasks.total) * 100) 
+    : 0;
+    
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
@@ -12,7 +37,7 @@ export function DashboardStats() {
           <ListTodo className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">24</div>
+          <div className="text-2xl font-bold">{stats.tasks.total}</div>
           <p className="text-xs text-muted-foreground">
             Total tasks across all boards
           </p>
@@ -21,11 +46,11 @@ export function DashboardStats() {
           <div className="w-full flex justify-between text-xs">
             <div className="flex items-center">
               <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mr-1" />
-              <span>12 completed</span>
+              <span>{stats.tasks.completed} completed</span>
             </div>
             <div className="flex items-center">
               <CircleAlert className="h-3.5 w-3.5 text-amber-500 mr-1" />
-              <span>5 overdue</span>
+              <span>{stats.tasks.overdue} overdue</span>
             </div>
           </div>
         </CardFooter>
@@ -38,7 +63,7 @@ export function DashboardStats() {
           <FileText className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">8</div>
+          <div className="text-2xl font-bold">{stats.notes.total}</div>
           <p className="text-xs text-muted-foreground">
             Shared notes and documents
           </p>
@@ -47,7 +72,7 @@ export function DashboardStats() {
           <div className="w-full flex justify-between text-xs">
             <div className="flex items-center">
               <Clock className="h-3.5 w-3.5 text-blue-500 mr-1" />
-              <span>3 updated today</span>
+              <span>{stats.notes.updatedToday} updated today</span>
             </div>
           </div>
         </CardFooter>
@@ -60,33 +85,38 @@ export function DashboardStats() {
           <MessageSquare className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">14</div>
+          <div className="text-2xl font-bold">{stats.messages.total}</div>
           <p className="text-xs text-muted-foreground">
-            Unread messages in chat
+            Messages in chat
           </p>
         </CardContent>
         <CardFooter className="p-2">
           <div className="w-full flex justify-between text-xs text-muted-foreground">
-            <span>Across 3 conversations</span>
+            <span>Across {stats.messages.conversations} conversations</span>
           </div>
         </CardFooter>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Team Activity
+            Task Completion
           </CardTitle>
-          <ListTodo className="h-4 w-4 text-muted-foreground" />
+          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">+18%</div>
+          <div className="text-2xl font-bold">{completionPercentage}%</div>
           <p className="text-xs text-muted-foreground">
-            Increased activity this week
+            Overall completion rate
           </p>
         </CardContent>
         <CardFooter className="p-2">
-          <div className="w-full flex justify-between text-xs text-green-500">
-            <span>↑ From previous week</span>
+          <div className="w-full flex justify-between items-center">
+            <div className="bg-slate-100 dark:bg-slate-800 h-2 rounded-full w-full overflow-hidden">
+              <div 
+                className="bg-green-500 h-full rounded-full" 
+                style={{ width: `${completionPercentage}%` }}
+              />
+            </div>
           </div>
         </CardFooter>
       </Card>

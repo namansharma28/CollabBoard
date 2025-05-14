@@ -2,52 +2,16 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-const data = [
-  {
-    name: "Mon",
-    completed: 4,
-    inProgress: 2,
-    pending: 1,
-  },
-  {
-    name: "Tue",
-    completed: 3,
-    inProgress: 4,
-    pending: 2,
-  },
-  {
-    name: "Wed",
-    completed: 5,
-    inProgress: 3,
-    pending: 0,
-  },
-  {
-    name: "Thu",
-    completed: 6,
-    inProgress: 2,
-    pending: 1,
-  },
-  {
-    name: "Fri",
-    completed: 2,
-    inProgress: 5,
-    pending: 3,
-  },
-  {
-    name: "Sat",
-    completed: 1,
-    inProgress: 1,
-    pending: 0,
-  },
-  {
-    name: "Sun",
-    completed: 0,
-    inProgress: 0,
-    pending: 0,
-  },
-];
+interface OverviewProps {
+  data: {
+    name: string;
+    completed: number;
+    inProgress: number;
+    pending: number;
+  }[];
+}
 
-export function Overview() {
+export function Overview({ data }: OverviewProps) {
   return (
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={data}>

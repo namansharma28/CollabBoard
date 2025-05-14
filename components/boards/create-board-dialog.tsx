@@ -32,6 +32,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
+import { BoardProps } from "./boards-list";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -43,16 +44,24 @@ const formSchema = z.object({
   }),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
+interface CreateBoardDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreateBoard?: (board: Omit<BoardProps, '_id'>) => Promise<void>;
+  teamId: string;
+}
+
 export function CreateBoardDialog({
   open,
   onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+  onCreateBoard,
+  teamId,
+}: CreateBoardDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
@@ -61,15 +70,32 @@ export function CreateBoardDialog({
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormValues) {
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      onOpenChange(false);
+    try {
+      if (onCreateBoard) {
+        const newBoard: Omit<BoardProps, '_id'> = {
+          title: values.title,
+          description: values.description || "",
+          category: values.category,
+          teamId,
+          totalTasks: 0,
+          completedTasks: 0,
+          members: [],
+          isStarred: false,
+        };
+        
+        await onCreateBoard(newBoard);
+      }
+      
       form.reset();
-    }, 1000);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating board:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -106,12 +132,13 @@ export function CreateBoardDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of this board's purpose"
+                      placeholder="Brief description of this board&apos;s purpose"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormDescription>
-                    Optional: Add details about this board's purpose
+                    Optional: Add details about this board&apos;s purpose
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -134,11 +161,12 @@ export function CreateBoardDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="development">Development</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="planning">Planning</SelectItem>
-                      <SelectItem value="personal">Personal</SelectItem>
+                      <SelectItem value="Development">Development</SelectItem>
+                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      <SelectItem value="Design">Design</SelectItem>
+                      <SelectItem value="Planning">Planning</SelectItem>
+                      <SelectItem value="Personal">Personal</SelectItem>
+                      <SelectItem value="General">General</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -1,69 +1,24 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
 
-const activities = [
-  {
-    id: 1,
-    user: {
-      name: "John Doe",
-      avatar: "/avatars/01.png",
-      initials: "JD",
-    },
-    action: "completed task",
-    target: "Update user interface",
-    time: "2 hours ago",
-    board: "Website Redesign",
-  },
-  {
-    id: 2,
-    user: {
-      name: "Sarah Kim",
-      avatar: "/avatars/02.png",
-      initials: "SK",
-    },
-    action: "created note",
-    target: "Meeting Notes - Apr 15",
-    time: "3 hours ago",
-    board: "Project Planning",
-  },
-  {
-    id: 3,
-    user: {
-      name: "Michael Brown",
-      avatar: "/avatars/03.png",
-      initials: "MB",
-    },
-    action: "commented on",
-    target: "API Integration Plan",
-    time: "5 hours ago",
-    board: "Development",
-  },
-  {
-    id: 4,
-    user: {
-      name: "Emily Chen",
-      avatar: "/avatars/04.png",
-      initials: "EC",
-    },
-    action: "moved task",
-    target: "Create user onboarding flow",
-    time: "Yesterday",
-    board: "UX Improvements",
-  },
-  {
-    id: 5,
-    user: {
-      name: "James Wilson",
-      avatar: "/avatars/05.png",
-      initials: "JW",
-    },
-    action: "added task",
-    target: "Review copy for landing page",
-    time: "Yesterday",
-    board: "Marketing",
-  },
-];
+interface ActivityItem {
+  id: string;
+  user: {
+    name: string;
+    avatar?: string;
+    initials: string;
+  };
+  action: string;
+  target: string;
+  time: string;
+  board: string;
+}
 
-export function RecentActivity() {
+interface RecentActivityProps {
+  activities: ActivityItem[];
+}
+
+export function RecentActivity({ activities }: RecentActivityProps) {
   return (
     <div className="space-y-8">
       {activities.map((activity) => (
@@ -79,7 +34,9 @@ export function RecentActivity() {
               <span className="font-medium">{activity.target}</span>
             </p>
             <p className="text-xs text-muted-foreground">
-              {activity.time} • {activity.board}
+              {typeof activity.time === "string" 
+                ? formatDistanceToNow(new Date(activity.time), { addSuffix: true }) 
+                : "Recently"} • {activity.board}
             </p>
           </div>
         </div>

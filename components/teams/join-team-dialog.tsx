@@ -66,7 +66,7 @@ export function JoinTeamDialog({
 
       const data = await response.json();
       toast.success("Successfully joined team!");
-      router.push(`/dashboard?team=${data.id}`);
+      router.push(`/${data.id}/dashboard`);
       onOpenChange(false);
       form.reset();
     } catch (error) {

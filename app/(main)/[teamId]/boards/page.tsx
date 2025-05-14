@@ -7,12 +7,16 @@ import { CreateBoardDialog } from "@/components/boards/create-board-dialog";
 import { Plus, Search } from "lucide-react";
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { BoardProps } from "@/components/boards/boards-list";
 
 export default function BoardsPage() {
-  const params = useParams();
+  const params = useParams() || {};
   const teamId = params.teamId as string;
-  const [boards, setBoards] = useState([]);
+  const [boards, setBoards] = useState<BoardProps[]>([]);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Boards');
 
   useEffect(() => {
     const fetchBoards = async () => {
@@ -21,7 +25,8 @@ export default function BoardsPage() {
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || 'Failed to fetch team data');
-        }        const data = await response.json();
+        }        
+        const data = await response.json();
         setBoards(data.boards);
       } catch (error) {
         console.error('Error:', error);
@@ -32,7 +37,57 @@ export default function BoardsPage() {
 
     fetchBoards();
   }, [teamId]);
-  const [open, setOpen] = useState(false);
+
+  const handleCreateBoard = async (newBoard: Omit<BoardProps, '_id'>) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/boards`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newBoard),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create board');
+      }
+      
+      const data = await response.json();
+      setBoards([...boards, data.board]);
+      setOpen(false);
+    } catch (error) {
+      console.error('Error creating board:', error);
+    }
+  };
+
+  const filteredBoards = boards
+    .filter(board => 
+      board.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      board.description.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter(board => 
+      selectedCategory === 'All Boards' || 
+      board.category === selectedCategory
+    );
+
+  // Count boards by category
+  const categorySet = new Set(['All Boards']);
+  boards.forEach(board => {
+    if (board.category) {
+      categorySet.add(board.category);
+    } else {
+      categorySet.add('General');
+    }
+  });
+  const categories = Array.from(categorySet);
+  
+  const categoryCounts = categories.reduce((acc, category) => {
+    acc[category] = category === 'All Boards' 
+      ? boards.length
+      : boards.filter(board => board.category === category).length;
+    return acc;
+  }, {} as Record<string, number>);
 
   if (loading) return <div>Loading...</div>;
 
@@ -59,55 +114,45 @@ export default function BoardsPage() {
               type="search"
               placeholder="Search boards..."
               className="w-full rounded-md border border-input bg-background py-2 pl-8 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           
           <div className="bg-card border rounded-md p-4">
             <h3 className="font-medium mb-2">Categories</h3>
             <div className="space-y-1">
-              <Button variant="ghost" className="w-full justify-start">
-                <span>All Boards</span>
-                <span className="ml-auto bg-secondary text-secondary-foreground text-xs py-0.5 px-1.5 rounded-md">
-                  10
-                </span>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <span>Development</span>
-                <span className="ml-auto bg-secondary text-secondary-foreground text-xs py-0.5 px-1.5 rounded-md">
-                  4
-                </span>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <span>Marketing</span>
-                <span className="ml-auto bg-secondary text-secondary-foreground text-xs py-0.5 px-1.5 rounded-md">
-                  3
-                </span>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <span>Design</span>
-                <span className="ml-auto bg-secondary text-secondary-foreground text-xs py-0.5 px-1.5 rounded-md">
-                  2
-                </span>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <span>Personal</span>
-                <span className="ml-auto bg-secondary text-secondary-foreground text-xs py-0.5 px-1.5 rounded-md">
-                  1
-                </span>
-              </Button>
+              {categories.map(category => (
+                <Button 
+                  key={category}
+                  variant={selectedCategory === category ? "secondary" : "ghost"} 
+                  className="w-full justify-start"
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  <span>{category}</span>
+                  <span className="ml-auto bg-secondary text-secondary-foreground text-xs py-0.5 px-1.5 rounded-md">
+                    {categoryCounts[category] || 0}
+                  </span>
+                </Button>
+              ))}
             </div>
           </div>
         </div>
         
         <div className="flex-1 w-full">
           <ScrollArea className="w-full">
-            <BoardsList />
+            <BoardsList boards={filteredBoards} />
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
       </div>
       
-      <CreateBoardDialog open={open} onOpenChange={setOpen} />
+      <CreateBoardDialog 
+        open={open} 
+        onOpenChange={setOpen} 
+        onCreateBoard={handleCreateBoard}
+        teamId={teamId}
+      />
     </div>
   );
 }

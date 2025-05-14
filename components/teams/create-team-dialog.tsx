@@ -70,7 +70,7 @@ export function CreateTeamDialog({
 
       const data = await response.json();
       toast.success("Team created successfully!");
-      router.push(`/dashboard?team=${data.id}`);
+      router.push(`/${data.id}/dashboard`);
       onOpenChange(false);
       form.reset();
     } catch (error) {

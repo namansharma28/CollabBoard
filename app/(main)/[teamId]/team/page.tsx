@@ -4,6 +4,9 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { TeamMembersDialog } from "@/components/TeamMembersDialog";
+import { Users } from "lucide-react";
 
 interface TeamMember {
   email: string;
@@ -18,6 +21,7 @@ interface Team {
   _id: string;
   name: string;
   members: TeamMember[];
+  code?: string;
 }
 
 // ... existing imports ...
@@ -28,6 +32,7 @@ export default function TeamPage() {
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isTeamMembersOpen, setIsTeamMembersOpen] = useState(false);
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -59,7 +64,13 @@ export default function TeamPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h2 className="text-3xl font-bold mb-6">{team.name}</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold">{team.name}</h2>
+        <Button onClick={() => setIsTeamMembersOpen(true)} variant="outline">
+          <Users className="mr-2 h-4 w-4" />
+          Manage Team
+        </Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ">
         {team.members.map((member, index) => (
           <Card key={member._id || index} className='hover:border-primary/50 transition-colors cursor-pointer'>
@@ -89,6 +100,14 @@ export default function TeamPage() {
           </Card>
         ))}
       </div>
+      
+      {/* Team Members Dialog */}
+      <TeamMembersDialog 
+        open={isTeamMembersOpen}
+        onOpenChange={setIsTeamMembersOpen}
+        teamId={teamId}
+        teamCode={team.code}
+      />
     </div>
   );
 }

@@ -4,10 +4,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Star } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
-const boards = [
+// Mock data will be used as fallback if no boards are provided
+const mockBoards = [
   {
-    id: "1",
+    _id: "1",
     title: "Website Redesign",
     description: "Tasks for the company website redesign project",
     category: "Development",
@@ -20,9 +22,10 @@ const boards = [
     ],
     lastUpdated: "2 hours ago",
     isStarred: true,
+    teamId: "team1"
   },
   {
-    id: "2",
+    _id: "2",
     title: "Marketing Campaign",
     description: "Planning and execution of Q2 marketing campaign",
     category: "Marketing",
@@ -34,9 +37,10 @@ const boards = [
     ],
     lastUpdated: "5 hours ago",
     isStarred: false,
+    teamId: "team1"
   },
   {
-    id: "3",
+    _id: "3",
     title: "Mobile App Development",
     description: "Building our new mobile application",
     category: "Development",
@@ -49,9 +53,10 @@ const boards = [
     ],
     lastUpdated: "Yesterday",
     isStarred: true,
+    teamId: "team1"
   },
   {
-    id: "4",
+    _id: "4",
     title: "Product Roadmap",
     description: "Strategic planning for product development",
     category: "Planning",
@@ -65,9 +70,10 @@ const boards = [
     ],
     lastUpdated: "2 days ago",
     isStarred: false,
+    teamId: "team1"
   },
   {
-    id: "5",
+    _id: "5",
     title: "UI Components",
     description: "Design and develop reusable UI components",
     category: "Design",
@@ -79,9 +85,10 @@ const boards = [
     ],
     lastUpdated: "3 days ago",
     isStarred: false,
+    teamId: "team1"
   },
   {
-    id: "6",
+    _id: "6",
     title: "Content Calendar",
     description: "Blog and social media content planning",
     category: "Marketing",
@@ -92,14 +99,40 @@ const boards = [
     ],
     lastUpdated: "5 days ago",
     isStarred: false,
+    teamId: "team1"
   },
 ];
 
-export function BoardsList() {
+export interface BoardProps {
+  _id: string;
+  title: string;
+  description: string;
+  category?: string;
+  totalTasks?: number;
+  completedTasks?: number;
+  members?: Array<{
+    id: string;
+    name: string;
+    avatar?: string;
+    initials: string;
+  }>;
+  lastUpdated?: string;
+  isStarred?: boolean;
+  teamId: string;
+}
+
+interface BoardsListProps {
+  boards?: BoardProps[];
+}
+
+export function BoardsList({ boards = mockBoards }: BoardsListProps) {
+  const params = useParams() || {};
+  const teamId = params.teamId as string || "default";
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
       {boards.map((board) => (
-        <Link href={`/boards/${board.id}`} key={board.id} className="block">
+        <Link href={`/${teamId}/boards/${board._id}`} key={board._id} className="block">
           <Card className="h-full hover:border-primary/50 transition-colors">
             <CardHeader className="relative pb-2">
               <div className="flex justify-between items-start">
@@ -121,36 +154,36 @@ export function BoardsList() {
             </CardHeader>
             <CardContent className="pb-2">
               <div className="flex items-center mb-4">
-                <Badge variant="secondary">{board.category}</Badge>
+                <Badge variant="secondary">{board.category || "General"}</Badge>
                 <div className="ml-auto text-sm text-muted-foreground">
-                  {board.completedTasks}/{board.totalTasks} tasks
+                  {board.completedTasks || 0}/{board.totalTasks || 0} tasks
                 </div>
               </div>
               <div className="w-full bg-secondary rounded-full h-2">
                 <div
                   className="bg-primary rounded-full h-2"
                   style={{
-                    width: `${(board.completedTasks / board.totalTasks) * 100}%`,
+                    width: `${(((board.completedTasks || 0) / (board.totalTasks || 1)) * 100)}%`,
                   }}
                 ></div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
               <div className="flex -space-x-2">
-                {board.members.slice(0, 3).map((member) => (
+                {(board.members || []).slice(0, 3).map((member) => (
                   <Avatar key={member.id} className="border-2 border-background h-8 w-8">
                     <AvatarImage src={member.avatar} alt={member.name} />
                     <AvatarFallback>{member.initials}</AvatarFallback>
                   </Avatar>
                 ))}
-                {board.members.length > 3 && (
+                {(board.members?.length || 0) > 3 && (
                   <div className="flex items-center justify-center bg-muted text-muted-foreground border-2 border-background rounded-full h-8 w-8 text-xs">
-                    +{board.members.length - 3}
+                    +{(board.members?.length || 0) - 3}
                   </div>
                 )}
               </div>
               <div className="text-xs text-muted-foreground">
-                Updated {board.lastUpdated}
+                {board.lastUpdated ? `Updated ${board.lastUpdated}` : "New board"}
               </div>
             </CardFooter>
           </Card>
