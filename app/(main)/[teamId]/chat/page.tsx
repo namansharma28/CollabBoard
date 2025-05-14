@@ -41,7 +41,7 @@ interface MessageType {
 export default function ChatPage() {
   const { data: session } = useSession();
   const params = useParams();
-  const teamId = params.teamId as string;
+  const teamId = params?.teamId as string;
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentChannel, setCurrentChannel] = useState("general");
