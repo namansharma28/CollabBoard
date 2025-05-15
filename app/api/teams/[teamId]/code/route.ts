@@ -30,7 +30,7 @@ export async function GET(
     // Check if user is an admin of the team
     const team = await db.collection("teams").findOne({
       _id: new ObjectId(params.teamId),
-      "members.email": session.user!.email
+      "members.email": session.user.email
     });
 
     if (!team) {
@@ -38,7 +38,7 @@ export async function GET(
     }
 
     // Check user's role
-    const currentUser = team.members.find((member: any) => member.email === session.user!.email);
+    const currentUser = team.members.find((member: any) => member.email === session.user.email);
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json({ error: "Only admins can access the join code" }, { status: 403 });
     }
@@ -84,7 +84,7 @@ export async function POST(
     // Check if user is an admin of the team
     const team = await db.collection("teams").findOne({
       _id: new ObjectId(params.teamId),
-      "members.email": session.user!.email
+      "members.email": session.user.email
     });
 
     if (!team) {
@@ -92,7 +92,7 @@ export async function POST(
     }
 
     // Check user's role
-    const currentUser = team.members.find((member: any) => member.email === session.user!.email);
+    const currentUser = team.members.find((member: any) => member.email === session.user.email);
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json({ error: "Only admins can regenerate the join code" }, { status: 403 });
     }

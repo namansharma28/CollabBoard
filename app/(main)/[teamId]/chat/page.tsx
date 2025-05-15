@@ -50,6 +50,23 @@ export default function ChatPage() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [replyTo, setReplyTo] = useState<MessageType | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const messageInputRef = useRef<HTMLInputElement>(null);
+
+  // Add keyboard shortcut to focus message input
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Alt+M to focus message input
+      if (e.altKey && e.key === 'm') {
+        e.preventDefault();
+        if (messageInputRef.current) {
+          messageInputRef.current.focus();
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Fetch messages for current channel
   const fetchMessages = async () => {
@@ -79,7 +96,7 @@ export default function ChatPage() {
     }
     
     console.log("Initializing new socket connection");
-    
+
     // Connect to WebSocket with correct path
     socket.current = io({
       path: "/api/socket/io",
@@ -97,7 +114,7 @@ export default function ChatPage() {
       setIsConnected(true);
       
       // Join team channel after connection is established
-      socket.current.emit("join-team", teamId);
+    socket.current.emit("join-team", teamId);
       console.log("Joined team room:", teamId);
       
       // Fetch messages after successful connection
@@ -246,9 +263,12 @@ export default function ChatPage() {
                 <span className="text-red-500 text-xs ml-2">(Connecting to chat server...)</span>
               )}
             </CardDescription>
+            <div className="text-xs mt-1 text-muted-foreground">
+              Press <kbd className="px-1 py-0.5 text-xs rounded border bg-muted font-mono">Alt+M</kbd> to quickly focus the message input
+            </div>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[500px] pr-4 relative">
+            <ScrollArea className="h-[450px] pr-4 relative">
               <div className="space-y-6 pb-16" ref={scrollAreaRef}>
                 {messages.map((msg) => (
                   <div
@@ -331,11 +351,18 @@ export default function ChatPage() {
             </ScrollArea>
             <div className="pt-6">
               <form onSubmit={handleSendMessage} className="flex gap-2">
-                <Input
-                  placeholder="Type your message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                />
+                <div className="relative flex-1">
+                  <Input
+                    placeholder="Type your message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    ref={messageInputRef}
+                    className="pr-16"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">
+                    Alt+M
+                  </div>
+                </div>
                 <Button type="submit" size="icon" disabled={!newMessage.trim() || !isConnected}>
                   <Send className="h-4 w-4" />
                 </Button>

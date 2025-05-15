@@ -8,7 +8,7 @@ export default function MainLayout({
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
-      <div className="flex-1 container py-4 md:py-8">
+      <div className="flex-1 container py-1 md:py-3">
         {children}
       </div>
       <footer className="border-t py-6 md:py-0">

@@ -25,7 +25,7 @@ export async function DELETE(
     // Check if user is a member of the team
     const team = await db.collection("teams").findOne({
       _id: new ObjectId(params.teamId),
-      "members.email": session.user!.email
+      "members.email": session.user.email
     });
 
     if (!team) {
@@ -33,8 +33,8 @@ export async function DELETE(
     }
 
     // Find the current user's role
-    const currentUser = team.members.find((member: any) => member.email === session.user!.email);
-    const isSelfRemoval = params.email === session.user!.email;
+    const currentUser = team.members.find((member: any) => member.email === session.user.email);
+    const isSelfRemoval = params.email === session.user.email;
     
     // Allow self-removal or admin removal of others
     if (!isSelfRemoval && (!currentUser || currentUser.role !== 'admin')) {

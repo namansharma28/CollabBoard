@@ -11,22 +11,30 @@ export const authOptions: AuthOptions = {
   ],
   pages: {
     signIn: "/login",
-    error: "/login",
+    error: "/error",
   },
   callbacks: {
-    async session({ session, token }) {
+    async session({ session }) {
+      // Only try to enhance the session if the user is logged in
+      if (session?.user?.email) {
+        try {
+          const { db } = await connectToDatabase();
+          const user = await db.collection("users").findOne({ email: session.user.email });
+          
+          if (user) {
+            // Update session with database user data
+            session.user.name = user.name || session.user.name;
+            session.user.image = user.image || session.user.image;
+          }
+        } catch (error) {
+          console.error("Error fetching user data for session:", error);
+        }
+      }
       return session;
     },
-    async jwt({ token, user, account }) {
-      if (account && user) {
-        return {
-          ...token,
-          accessToken: account.access_token,
-        };
-      }
-      return token;
-    },
-    async signIn({ user, account }) {
+    async signIn({ user }) {
+      if (!user?.email) return false;
+      
       try {
         const { db } = await connectToDatabase();
         
@@ -41,6 +49,12 @@ export const authOptions: AuthOptions = {
             image: user.image,
             createdAt: new Date(),
           });
+        } else {
+          // Update login timestamp
+          await db.collection("users").updateOne(
+            { email: user.email },
+            { $set: { lastLogin: new Date() } }
+          );
         }
         
         return true;
@@ -49,7 +63,18 @@ export const authOptions: AuthOptions = {
         return false;
       }
     },
+    // Simple redirect to handle Google OAuth callback
+    async redirect({ url, baseUrl }) {
+      // If the url starts with the base url, allow it
+      if (url.startsWith(baseUrl)) return url;
+      // Otherwise, redirect to base url
+      return baseUrl;
+    }
   },
+  // Use JWT strategy
+  session: {
+    strategy: "jwt",
+  }
 };
 
 const handler = NextAuth(authOptions);

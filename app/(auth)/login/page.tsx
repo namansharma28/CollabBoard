@@ -21,9 +21,17 @@ import { toast } from "react-hot-toast";
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get("from") || "/team-selection";
+  const from = searchParams?.get("from") || "/team-selection";
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Check for error message in the URL
+  const error = searchParams?.get("error");
+  
+  // Show error toast if error exists
+  if (error) {
+    toast.error(`Login error: ${error}`);
+  }
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,24 +63,17 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
     try {
-      const result = await signIn("google", { 
-        redirect: false,
-        callbackUrl: from
+      setIsLoading(true);
+      // Use redirect: true to let NextAuth handle the redirect flow natively
+      await signIn("google", { 
+        callbackUrl: from,
+        redirect: true
       });
-
-      if (result?.error) {
-        toast.error("Failed to login with Google");
-        return;
-      }
-
-      toast.success("Login successful!");
-      router.push(from);
+      // No need to handle redirect manually as NextAuth will do it
     } catch (error) {
       console.error("Google login failed:", error);
       toast.error("Google login failed. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };

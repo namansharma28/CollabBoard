@@ -12,6 +12,7 @@ import { CreateTaskDialog } from "@/components/boards/create-task-dialog";
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
 import { toast } from "@/components/ui/use-toast";
+import { KanbanBoard } from '@/components/boards/kanban-board';
 
 export interface Task {
   _id: string;
@@ -54,6 +55,7 @@ export default function BoardPage() {
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [viewMode, setViewMode] = useState<'board' | 'list' | null>(null);
 
   // Function to fetch board and tasks
   const fetchBoardAndTasks = async () => {
@@ -96,6 +98,41 @@ export default function BoardPage() {
       fetchBoardAndTasks();
     }
   }, [teamId, boardId, session]);
+
+  // Setup keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Alt+N to create a new task
+      if (e.altKey && e.key === 'n') {
+        e.preventDefault();
+        setCreateTaskOpen(true);
+      }
+      
+      // Alt+V to toggle between board and list views
+      if (e.altKey && e.key === 'v') {
+        e.preventDefault();
+        handleToggleView(viewMode === 'board' ? 'list' : 'board');
+      }
+      
+      // Alt+1-4 to switch between task filters
+      if (e.altKey && e.key === '1') {
+        e.preventDefault();
+        setActiveTab('all');
+      } else if (e.altKey && e.key === '2') {
+        e.preventDefault();
+        setActiveTab('todo');
+      } else if (e.altKey && e.key === '3') {
+        e.preventDefault();
+        setActiveTab('in-progress');
+      } else if (e.altKey && e.key === '4') {
+        e.preventDefault();
+        setActiveTab('done');
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [viewMode]);
 
   // Setup socket event listeners
   useEffect(() => {
@@ -170,6 +207,23 @@ export default function BoardPage() {
       socket.off(EVENTS.BOARD_UPDATED, handleBoardUpdated);
     };
   }, [socket, boardId, EVENTS, session?.user?.email]);
+
+  // Fetch team settings for defaultBoardView
+  useEffect(() => {
+    const fetchDefaultView = async () => {
+      if (!teamId) return;
+      // Check localStorage first
+      const saved = typeof window !== 'undefined' && localStorage.getItem(`boardView_${teamId}`);
+      if (saved === 'board' || saved === 'list') {
+        setViewMode(saved);
+        return;
+      }
+      
+      // Default to board view if no preference is saved
+      setViewMode('board');
+    };
+    fetchDefaultView();
+  }, [teamId]);
 
   const handleCreateTask = async (newTask: Omit<Task, '_id' | 'createdAt'>) => {
     try {
@@ -251,8 +305,17 @@ export default function BoardPage() {
     ? tasks 
     : tasks.filter(task => task.status === activeTab);
 
+  // Add toggle handler
+  const handleToggleView = (mode: 'board' | 'list') => {
+    setViewMode(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`boardView_${teamId}`, mode);
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (!board) return <div>Board not found</div>;
+  if (!viewMode) return <div>Loading board view...</div>;
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -267,17 +330,53 @@ export default function BoardPage() {
       <div className="flex justify-between items-center mt-8 mb-4">
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
-            <TabsTrigger value="all">All Tasks</TabsTrigger>
-            <TabsTrigger value="todo">To Do</TabsTrigger>
-            <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-            <TabsTrigger value="done">Completed</TabsTrigger>
+            <TabsTrigger value="all">
+              All Tasks
+              <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                Alt+1
+              </kbd>
+            </TabsTrigger>
+            <TabsTrigger value="todo">
+              To Do
+              <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                Alt+2
+              </kbd>
+            </TabsTrigger>
+            <TabsTrigger value="in-progress">
+              In Progress
+              <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                Alt+3
+              </kbd>
+            </TabsTrigger>
+            <TabsTrigger value="done">
+              Completed
+              <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                Alt+4
+              </kbd>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
-        
-        <Button onClick={() => setCreateTaskOpen(true)} className="ml-4">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Task
-        </Button>
+        <div className="flex items-center gap-2 ml-4">
+          <Button
+            variant={viewMode === 'board' ? 'default' : 'outline'}
+            onClick={() => handleToggleView('board')}
+          >
+            Kanban
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            onClick={() => handleToggleView('list')}
+          >
+            List
+          </Button>
+          <Button onClick={() => setCreateTaskOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Task
+            <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+              Alt+N
+            </kbd>
+          </Button>
+        </div>
       </div>
       
       {socketStatus === 'connected' && (
@@ -287,12 +386,16 @@ export default function BoardPage() {
         </div>
       )}
       
-      <TaskList 
-        tasks={filteredTasks} 
-        onTaskUpdate={handleTaskUpdate}
-        onTaskDelete={handleTaskDelete}
-        isAdmin={isAdmin}
-      />
+      {viewMode === 'board' ? (
+        <KanbanBoard tasks={tasks} onTaskUpdate={handleTaskUpdate} onTaskDelete={handleTaskDelete} isAdmin={isAdmin} />
+      ) : (
+        <TaskList 
+          tasks={filteredTasks} 
+          onTaskUpdate={handleTaskUpdate}
+          onTaskDelete={handleTaskDelete}
+          isAdmin={isAdmin}
+        />
+      )}
       
       <CreateTaskDialog 
         open={createTaskOpen} 

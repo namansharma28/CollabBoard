@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,68 +14,115 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Settings, Users } from "lucide-react";
+import { LogOut, User, Settings, Users, ArrowLeftRight } from "lucide-react";
 import { TeamMembersDialog } from "@/components/TeamMembersDialog";
+import { useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 
 export function UserNav() {
-  const params = useParams();
-  const teamId = params?.teamId as string;
+  const params = useParams() || {};
+  const router = useRouter();
+  const { data: session } = useSession();
+  const currentTeamId = params?.teamId as string;
+  const [lastTeamId, setLastTeamId] = useState<string | null>(null);
   const [isTeamMembersOpen, setIsTeamMembersOpen] = useState(false);
+  
+  // Save and retrieve the last visited teamId
+  useEffect(() => {
+    if (currentTeamId) {
+      localStorage.setItem('lastVisitedTeamId', currentTeamId);
+      setLastTeamId(currentTeamId);
+    } else if (typeof window !== 'undefined') {
+      const savedTeamId = localStorage.getItem('lastVisitedTeamId');
+      setLastTeamId(savedTeamId);
+    }
+  }, [currentTeamId]);
+  
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/');
+  };
+  
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!session?.user?.name) return 'U';
+    return session.user.name
+      .split(' ')
+      .map(name => name[0])
+      .join('')
+      .toUpperCase();
+  };
+  
+  const teamIdToUse = currentTeamId || lastTeamId;
   
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/avatars/01.png" alt="@username" />
-              <AvatarFallback>TS</AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">John Doe</p>
-              <p className="text-xs leading-none text-muted-foreground">
-                john.doe@example.com
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            {teamId && (
-              <DropdownMenuItem onSelect={(e) => {
-                e.preventDefault();
-                setIsTeamMembersOpen(true);
-              }}>
-                <Users className="mr-2 h-4 w-4" />
-                <span>Manage Team</span>
-              </DropdownMenuItem>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarImage 
+              src={session?.user?.image || ''} 
+              alt={session?.user?.name || 'User'} 
+            />
+            <AvatarFallback>{getUserInitials()}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{session?.user?.name || 'User'}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {session?.user?.email || ''}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+            {teamIdToUse && (
+              <>
+                <DropdownMenuItem onClick={() => router.push('/team-selection')}>
+                  <ArrowLeftRight className="mr-2 h-4 w-4" />
+                  <span>Switch Team</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={(e) => {
+                  e.preventDefault();
+                  setIsTeamMembersOpen(true);
+                }}>
+                  <Users className="mr-2 h-4 w-4" />
+                  <span>Manage Team</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/${teamIdToUse}/settings`}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Team Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
             )}
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile Settings</span>
+              </Link>
             </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
       
       {/* Team Members Dialog */}
-      {teamId && (
+      {teamIdToUse && (
         <TeamMembersDialog 
           open={isTeamMembersOpen}
           onOpenChange={setIsTeamMembersOpen}
-          teamId={teamId}
+          teamId={teamIdToUse}
         />
       )}
     </>

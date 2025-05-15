@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoreHorizontal, Star } from "lucide-react";
 import { BoardProps } from "./boards-list";
 import { Progress } from "@/components/ui/progress";
+import { useParams } from "next/navigation";
 
 interface BoardHeaderProps {
   board: BoardProps;
@@ -14,6 +15,8 @@ interface BoardHeaderProps {
 }
 
 export function BoardHeader({ board, tasksCount }: BoardHeaderProps) {
+  const params = useParams() || {};
+  
   const completionPercentage = tasksCount.total > 0 
     ? Math.round((tasksCount.completed / tasksCount.total) * 100) 
     : 0;
@@ -32,9 +35,6 @@ export function BoardHeader({ board, tasksCount }: BoardHeaderProps) {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            Share
-          </Button>
           <Button variant="outline" size="icon" className="h-8 w-8">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
