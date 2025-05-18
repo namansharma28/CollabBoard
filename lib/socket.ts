@@ -15,12 +15,33 @@ export type NextApiResponseWithSocket = NextApiResponse & {
 };
 
 // Socket event types - must match client-side events
+
 export const SOCKET_EVENTS = {
   TASK_CREATED: 'task-created',
   TASK_UPDATED: 'task-updated',
   TASK_DELETED: 'task-deleted',
-  BOARD_UPDATED: 'board-updated'
+  BOARD_UPDATED: 'board-updated',
 };
+
+export async function emitSocketEvent(req: Request, event: string, data: any, room: string) {
+  try {
+    const socketEmitUrl = new URL('/api/socket/emit', req.url).toString();
+    await fetch(socketEmitUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event,
+        data,
+        room,
+      }),
+    });
+  } catch (error) {
+    console.error('Failed to emit socket event:', error);
+  }
+}
+
 
 // Initialize a socket.io server
 export const initSocketServer = (req: NextApiRequest, res: NextApiResponseWithSocket) => {

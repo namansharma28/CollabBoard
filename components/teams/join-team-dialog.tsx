@@ -35,9 +35,11 @@ const formSchema = z.object({
 export function JoinTeamDialog({
   open,
   onOpenChange,
+  onTeamJoined,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onTeamJoined?: () => Promise<void>;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -66,6 +68,11 @@ export function JoinTeamDialog({
 
       const data = await response.json();
       toast.success("Successfully joined team!");
+      
+      if (onTeamJoined) {
+        await onTeamJoined();
+      }
+      
       router.push(`/${data.id}/dashboard`);
       onOpenChange(false);
       form.reset();

@@ -1,42 +1,24 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
+import { SOCKET_EVENTS, emitSocketEvent } from '@/lib/socket'; 
 
-// Socket event types - must match client-side events
-export const SOCKET_EVENTS = {
-  TASK_CREATED: 'task-created',
-  TASK_UPDATED: 'task-updated',
-  TASK_DELETED: 'task-deleted',
-  BOARD_UPDATED: 'board-updated'
-};
-
-// This helper function emits a socket event via the API
-async function emitSocketEvent(req: Request, event: string, data: any, room: string) {
-  try {
-    const socketEmitUrl = new URL('/api/socket/emit', req.url).toString();
-    await fetch(socketEmitUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        event,
-        data,
-        room
-      }),
-    });
-  } catch (error) {
-    console.error('Failed to emit socket event:', error);
-  }
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+    boardId: string;
+    taskId: string;
+  }>;
 }
 
 export async function GET(
   request: Request,
-  { params }: { params: { teamId: string; boardId: string; taskId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -82,9 +64,10 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { teamId: string; boardId: string; taskId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -211,9 +194,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { teamId: string; boardId: string; taskId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -277,28 +261,29 @@ export async function DELETE(
     });
 
     // Convert MongoDB _id to string
-    const boardWithStringId = updatedBoard ? {
+    const boardWithStringId = {
       ...updatedBoard,
-      _id: updatedBoard._id.toString()
-    } : null;
+      _id: updatedBoard?._id.toString()
+    };
 
-    // Emit socket event for task deletion
+    // Emit socket events
     await emitSocketEvent(
       request,
       SOCKET_EVENTS.TASK_DELETED,
-      { taskId: params.taskId, boardId: params.boardId, task: deletedTask },
+      { 
+        taskId: params.taskId, 
+        boardId: params.boardId,
+        task: deletedTask
+      },
       `board-${params.boardId}`
     );
 
-    // Emit board update event
-    if (boardWithStringId) {
-      await emitSocketEvent(
-        request,
-        SOCKET_EVENTS.BOARD_UPDATED,
-        { board: boardWithStringId },
-        `board-${params.boardId}`
-      );
-    }
+    await emitSocketEvent(
+      request,
+      SOCKET_EVENTS.BOARD_UPDATED,
+      { board: boardWithStringId },
+      `board-${params.boardId}`
+    );
 
     return NextResponse.json({ 
       message: "Task deleted successfully" 

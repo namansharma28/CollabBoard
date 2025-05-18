@@ -22,7 +22,7 @@ interface Note {
 
 export default function NotesPage() {
   const params = useParams();
-  const teamId = params.teamId as string;
+  const teamId = params?.teamId as string;
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +31,8 @@ export default function NotesPage() {
 
   // Add function to fetch team role
   const fetchTeamRole = async () => {
+    if (!teamId) return;
+    
     try {
       const response = await fetch(`/api/teams/${teamId}/role`);
       if (!response.ok) {
@@ -46,6 +48,8 @@ export default function NotesPage() {
 
 
   const fetchNotes = async () => {
+    if (!teamId) return;
+    
     try {
       const response = await fetch(`/api/teams/${teamId}/notes`);
       if (!response.ok) {
@@ -63,12 +67,16 @@ export default function NotesPage() {
   };
 
   useEffect(() => {
-    fetchNotes();
-    fetchTeamRole();
+    if (teamId) {
+      fetchNotes();
+      fetchTeamRole();
+    }
   }, [teamId]);
 
   // Add delete function
   const handleDeleteNote = async (noteId: string) => {
+    if (!teamId) return;
+    
     try {
       const response = await fetch(`/api/teams/${teamId}/notes/${noteId}`, {
         method: 'DELETE',
@@ -90,6 +98,7 @@ export default function NotesPage() {
     }
   };
 
+  if (!teamId) return <div>Invalid team ID</div>;
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
 

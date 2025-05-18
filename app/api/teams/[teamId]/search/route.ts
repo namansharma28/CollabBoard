@@ -3,11 +3,18 @@ import { getServerSession } from "next-auth";
 import { ObjectId, Document, WithId } from "mongodb";
 import { connectToDatabase } from "@/lib/mongodb";
 
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+  }>;
+}
+
 export async function GET(
   req: NextRequest,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     // Get the search query
     const searchQuery = req.nextUrl.searchParams.get("q");
     const { teamId } = params;

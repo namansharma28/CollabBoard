@@ -1,15 +1,22 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
+
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+  }>;
+}
 
 // GET /api/teams/[teamId] - Get team data
 export async function GET(
   request: Request,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -46,11 +53,12 @@ export async function GET(
 // PATCH /api/teams/[teamId] - Update team settings
 export async function PATCH(
   request: Request,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
-  console.log('PATCH request received for teamId:', params.teamId);
-  
   try {
+    const params = await context.params;
+    console.log('PATCH request received for teamId:', params.teamId);
+    
     console.log('Checking authentication...');
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -247,9 +255,10 @@ export async function PATCH(
 // DELETE /api/teams/[teamId] - Delete a team
 export async function DELETE(
   request: Request,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -262,32 +271,52 @@ export async function DELETE(
 
     const { db } = await connectToDatabase();
     
-    // Find team and check if user is the creator
+    // Ensure user is an admin of the team
     const team = await db.collection("teams").findOne({
       _id: new ObjectId(params.teamId),
-      "creator.email": session.user.email
+      "members": { 
+        $elemMatch: { 
+          email: session.user.email,
+          role: "admin"
+        } 
+      }
     });
 
     if (!team) {
-      return NextResponse.json({ error: "Team not found or you're not the creator" }, { status: 403 });
+      return NextResponse.json({ 
+        error: "Team not found or you don't have admin privileges"
+      }, { status: 403 });
     }
 
-    // Delete all boards belonging to this team
-    await db.collection("boards").deleteMany({
-      teamId: params.teamId
+    // Delete all related data
+    // 1. Delete all boards and tasks
+    const boards = await db.collection("boards")
+      .find({ teamId: params.teamId })
+      .toArray();
+    
+    const boardIds = boards.map(board => board._id.toString());
+    
+    // Delete tasks for all boards
+    await db.collection("tasks").deleteMany({ 
+      boardId: { $in: boardIds } 
     });
     
-    // Delete all tasks belonging to this team
-    await db.collection("tasks").deleteMany({
-      teamId: params.teamId
+    // Delete boards
+    await db.collection("boards").deleteMany({ 
+      teamId: params.teamId 
     });
     
-    // Delete all notes belonging to this team
-    await db.collection("notes").deleteMany({
-      teamId: params.teamId
+    // 2. Delete notes
+    await db.collection("notes").deleteMany({ 
+      teamId: new ObjectId(params.teamId) 
     });
     
-    // Delete the team
+    // 3. Delete messages
+    await db.collection("messages").deleteMany({ 
+      teamId: new ObjectId(params.teamId) 
+    });
+    
+    // 4. Finally delete the team
     const result = await db.collection("teams").deleteOne({
       _id: new ObjectId(params.teamId)
     });
@@ -296,8 +325,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Failed to delete team" }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Team and all associated data deleted successfully" });
-
+    return NextResponse.json({ message: "Team deleted successfully" });
   } catch (error) {
     console.error("Error deleting team:", error);
     return NextResponse.json(

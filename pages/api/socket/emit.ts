@@ -1,7 +1,7 @@
 import { NextApiRequest } from 'next';
 import { initSocketServer, NextApiResponseWithSocket, SOCKET_EVENTS } from '@/lib/socket';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 
 // This API route is used to emit socket events from server-side code
 export default async function handler(req: NextApiRequest, res: NextApiResponseWithSocket) {

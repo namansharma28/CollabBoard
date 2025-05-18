@@ -1,15 +1,23 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
+
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+    email: string;
+  }>;
+}
 
 // DELETE /api/teams/[teamId]/members/[email] - Remove a member from the team
 export async function DELETE(
   request: Request,
-  { params }: { params: { teamId: string; email: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,8 +41,8 @@ export async function DELETE(
     }
 
     // Find the current user's role
-    const currentUser = team.members.find((member: any) => member.email === session.user.email);
-    const isSelfRemoval = params.email === session.user.email;
+    const currentUser = team.members.find((member: any) => member.email === session?.user?.email);
+    const isSelfRemoval = params.email === session?.user?.email;
     
     // Allow self-removal or admin removal of others
     if (!isSelfRemoval && (!currentUser || currentUser.role !== 'admin')) {

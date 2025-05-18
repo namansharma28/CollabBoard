@@ -2,6 +2,7 @@ import React from "react";
 import { Task } from "@/app/(main)/[teamId]/boards/[boardId]/page";
 import { KanbanTask } from "./kanban-task";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDroppable } from "@dnd-kit/core";
 
 interface KanbanColumnProps {
   id: string;
@@ -26,9 +27,14 @@ export function KanbanColumn({
   focusedTaskIndex = -1,
   onFocus,
 }: KanbanColumnProps) {
+  const { setNodeRef } = useDroppable({
+    id: id,
+  });
+
   return (
     <div 
-      className={`bg-muted rounded-lg p-4 ${isFocused ? 'ring-2 ring-primary' : ''}`}
+      ref={setNodeRef}
+      className={`flex-1 min-w-[300px] bg-muted rounded-lg p-4 ${isFocused ? 'ring-2 ring-primary' : ''}`}
       onClick={onFocus}
     >
       <div className="flex items-center justify-between mb-2">
@@ -36,7 +42,7 @@ export function KanbanColumn({
         <div className="text-muted-foreground text-sm">{tasks.length}</div>
       </div>
       
-      <ScrollArea className="h-[65vh]">
+      <ScrollArea className="h-[calc(100vh-16rem)]">
         <div className="space-y-2 pr-2">
           {tasks.length === 0 ? (
             <div className="h-20 border border-dashed rounded-md flex items-center justify-center">

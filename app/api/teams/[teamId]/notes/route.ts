@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
+
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+  }>;
+}
 
 export async function GET(
   request: Request,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     // Validate teamId
     if (!params.teamId || !ObjectId.isValid(params.teamId)) {
       return NextResponse.json({ error: "Invalid team ID" }, { status: 400 });
@@ -52,10 +59,11 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  context: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
-    const { teamId } = context.params;
+    const params = await context.params;
+    const teamId = params.teamId;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

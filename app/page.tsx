@@ -524,7 +524,7 @@ export default function LandingPage() {
                     {plan.popular && (
                   <div className="inline-flex items-center rounded-full border border-primary px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-primary">
                     Popular
-                      </div>
+                  </div>
                     )}
                     <h3 className="text-2xl font-bold">{plan.name}</h3>
                     <p className="text-muted-foreground">{plan.description}</p>

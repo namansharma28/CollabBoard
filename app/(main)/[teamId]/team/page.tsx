@@ -28,7 +28,7 @@ interface Team {
 
 export default function TeamPage() {
   const params = useParams();
-  const teamId = params.teamId as string;
+  const teamId = params?.teamId as string;
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +36,8 @@ export default function TeamPage() {
 
   useEffect(() => {
     const fetchTeam = async () => {
+      if (!teamId) return;
+      
       try {
         const response = await fetch(`/api/teams/${teamId}/team`);
         if (!response.ok) {
@@ -55,11 +57,11 @@ export default function TeamPage() {
     fetchTeam();
   }, [teamId]);
 
+  if (!teamId) return <div>Invalid team ID</div>;
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
   if (!team) return <div>Team not found</div>;
   if (!team.members || team.members.length === 0) return <div>No members found</div>;
-  console.log(team.members[1].email)
   
 
   return (

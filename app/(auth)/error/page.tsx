@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { AlertCircle } from 'lucide-react';
 
-export default function AuthErrorPage() {
+function ErrorContent() {
   const router = useRouter();
   const searchParams = useSearchParams() || new URLSearchParams();
   
@@ -46,5 +46,19 @@ export default function AuthErrorPage() {
         </Button>
       </CardFooter>
     </Card>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Loading...</CardTitle>
+        </CardHeader>
+      </Card>
+    }>
+      <ErrorContent />
+    </Suspense>
   );
 } 

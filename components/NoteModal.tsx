@@ -5,6 +5,19 @@ import { Trash2 } from "lucide-react"; // Import trash icon
 import { formatDistanceToNow } from 'date-fns';
 import { useSession } from "next-auth/react"; // For checking current user
 
+// Define the Note interface
+interface Note {
+  _id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: {
+    email: string;
+    name?: string;
+  };
+}
+
 // Update interface to include team role
 interface NoteModalProps {
   note: Note | null;

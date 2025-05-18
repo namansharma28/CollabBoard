@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
+
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+  }>;
+}
 
 export async function GET(
   request: Request,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     // Validate teamId
     if (!params.teamId || !ObjectId.isValid(params.teamId)) {
       return NextResponse.json({ error: "Invalid team ID" }, { status: 400 });
@@ -30,7 +37,7 @@ export async function GET(
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
-    const memberInfo = team.members.find((m: any) => m.email === session.user.email);
+    const memberInfo = team.members.find((m: any) => m.email === session?.user?.email);
     
     return NextResponse.json({ role: memberInfo?.role || 'member' });
   } catch (error) {

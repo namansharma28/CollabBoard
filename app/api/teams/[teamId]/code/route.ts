@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
 
 // Helper function to generate a random code
@@ -9,12 +9,19 @@ function generateTeamCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+  }>;
+}
+
 // GET /api/teams/[teamId]/code - Get team join code
 export async function GET(
   request: Request,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,7 +45,7 @@ export async function GET(
     }
 
     // Check user's role
-    const currentUser = team.members.find((member: any) => member.email === session.user.email);
+    const currentUser = team.members.find((member: any) => member.email === session?.user?.email);
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json({ error: "Only admins can access the join code" }, { status: 403 });
     }
@@ -66,9 +73,10 @@ export async function GET(
 // POST /api/teams/[teamId]/code - Regenerate team join code
 export async function POST(
   request: Request,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -92,7 +100,7 @@ export async function POST(
     }
 
     // Check user's role
-    const currentUser = team.members.find((member: any) => member.email === session.user.email);
+    const currentUser = team.members.find((member: any) => member.email === session?.user?.email);
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json({ error: "Only admins can regenerate the join code" }, { status: 403 });
     }

@@ -38,9 +38,11 @@ const formSchema = z.object({
 export function CreateTeamDialog({
   open,
   onOpenChange,
+  onTeamCreated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onTeamCreated?: () => Promise<void>;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -70,6 +72,11 @@ export function CreateTeamDialog({
 
       const data = await response.json();
       toast.success("Team created successfully!");
+      
+      if (onTeamCreated) {
+        await onTeamCreated();
+      }
+      
       router.push(`/${data.id}/dashboard`);
       onOpenChange(false);
       form.reset();

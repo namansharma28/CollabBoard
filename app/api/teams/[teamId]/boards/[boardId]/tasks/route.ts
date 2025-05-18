@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
 import { SOCKET_EVENTS } from '@/lib/socket';
 
@@ -25,11 +25,19 @@ async function emitSocketEvent(req: Request, event: string, data: any, room: str
   }
 }
 
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+    boardId: string;
+  }>;
+}
+
 export async function GET(
   request: Request,
-  { params }: { params: { teamId: string; boardId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -80,9 +88,10 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { teamId: string; boardId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

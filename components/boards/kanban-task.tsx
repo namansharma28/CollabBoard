@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Trash, Clock, CalendarIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface KanbanTaskProps {
   task: Task;
@@ -13,6 +15,7 @@ interface KanbanTaskProps {
   onDelete: () => void;
   isAdmin: boolean;
   isFocused?: boolean;
+  isDragging?: boolean;
 }
 
 export function KanbanTask({
@@ -21,7 +24,22 @@ export function KanbanTask({
   onDelete,
   isAdmin,
   isFocused = false,
+  isDragging = false,
 }: KanbanTaskProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: task._id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const priorityColors = {
     low: "bg-blue-500",
     medium: "bg-yellow-500",
@@ -37,7 +55,13 @@ export function KanbanTask({
     : null;
 
   return (
-    <Card className={`${isFocused ? 'ring-2 ring-primary' : ''}`}>
+    <Card 
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`${isFocused ? 'ring-2 ring-primary' : ''} cursor-grab active:cursor-grabbing`}
+    >
       <CardHeader className="p-4">
         <CardTitle className="text-sm font-medium">{task.title}</CardTitle>
         <div className="text-xs text-muted-foreground">{task.description}</div>

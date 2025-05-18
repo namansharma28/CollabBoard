@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -45,12 +45,19 @@ interface MessageDocument {
   };
 }
 
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+  }>;
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
     // Extract and validate teamId
+    const params = await context.params;
     const teamId = params.teamId;
     
     if (!ObjectId.isValid(teamId)) {
@@ -131,10 +138,11 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { teamId: string } }
+  context: RouteContext
 ) {
   try {
     // Extract and validate teamId
+    const params = await context.params;
     const teamId = params.teamId;
     
     if (!ObjectId.isValid(teamId)) {

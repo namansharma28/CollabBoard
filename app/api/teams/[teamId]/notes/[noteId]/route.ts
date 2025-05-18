@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
+
+interface RouteContext {
+  params: Promise<{
+    teamId: string;
+    noteId: string;
+  }>;
+}
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { teamId: string; noteId: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params;
     const { teamId, noteId } = params;
 
     // Validate IDs
@@ -34,7 +42,7 @@ export async function DELETE(
     }
 
     // Find the user's role in the team
-    const memberInfo = team.members.find((m: any) => m.email === session.user.email);
+    const memberInfo = team.members.find((m: any) => m.email === session?.user?.email);
     const isAdmin = memberInfo?.role === 'admin';
 
     // Get the note

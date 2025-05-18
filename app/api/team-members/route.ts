@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 import { verifyJwt } from '@/lib/jwt';
 
 export async function GET(request: Request) {
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
     // Get all unique member emails from all teams
     const memberEmails = teams.reduce((emails: string[], team) => {
-      team.members.forEach(member => {
+      team.members.forEach((member: { email: string }) => {
         if (!emails.includes(member.email)) {
           emails.push(member.email);
         }
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
     // Add user details to team members
     const teamsWithUserDetails = teams.map(team => ({
       ...team,
-      members: team.members.map(member => ({
+      members: team.members.map((member: { email: string }) => ({
         ...member,
         name: userMap[member.email]?.name,
         image: userMap[member.email]?.image

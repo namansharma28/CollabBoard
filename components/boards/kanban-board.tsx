@@ -167,14 +167,14 @@ export function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, isAdmin = false
   }, [tasks, focusedColumn, focusedTaskIndex, onTaskUpdate, onTaskDelete, isAdmin, toast]);
 
   return (
-    <div className="h-[calc(100vh-12rem)]">
+    <div className="flex flex-col h-full min-h-[600px]">
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="flex h-full gap-4">
+        <div className="flex flex-1 gap-4 overflow-x-auto pb-4">
           {COLUMNS.map((column) => {
             const columnTasks = tasks.filter((task) => task.status === column.id);
             return (
@@ -199,8 +199,8 @@ export function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, isAdmin = false
             <KanbanTask
               task={activeTask}
               isDragging
-              onTaskUpdate={onTaskUpdate}
-              onTaskDelete={onTaskDelete}
+              onUpdate={(updatedTask) => onTaskUpdate(activeTask._id, updatedTask)}
+              onDelete={() => onTaskDelete(activeTask._id)}
               isAdmin={isAdmin}
             />
           ) : null}
