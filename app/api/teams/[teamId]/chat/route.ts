@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 import { ObjectId } from 'mongodb';
 import { formatDistanceToNow } from 'date-fns';
+import { pusherServer } from '@/lib/pusher';
 
 interface MessageType {
   _id: string;
@@ -171,7 +172,7 @@ export async function POST(
     }
 
     // Create message
-    const message: MessageDocument = {
+    const message = {
       teamId: new ObjectId(teamId),
       content: content.trim(),
       channel: channel,
@@ -204,6 +205,9 @@ export async function POST(
       _id: result.insertedId.toString(),
       teamId: teamId // Send back string version
     };
+
+    // Trigger Pusher event
+    await pusherServer.trigger(`team-${teamId}`, 'new-message', responseMessage);
 
     return NextResponse.json({ 
       message: "Message sent successfully",

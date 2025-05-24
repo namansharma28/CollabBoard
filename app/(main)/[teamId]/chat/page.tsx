@@ -17,7 +17,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { io } from "socket.io-client";
+import { pusherClient } from "@/lib/pusher";
 
 interface MessageType {
   _id: string;
@@ -46,16 +46,14 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [currentChannel, setCurrentChannel] = useState("general");
   const [newMessage, setNewMessage] = useState("");
-  const socket = useRef<any>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [replyTo, setReplyTo] = useState<MessageType | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
   const messageInputRef = useRef<HTMLInputElement>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   // Add keyboard shortcut to focus message input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Alt+M to focus message input
       if (e.altKey && e.key === 'm') {
         e.preventDefault();
         if (messageInputRef.current) {
@@ -87,142 +85,48 @@ export default function ChatPage() {
     }
   };
 
-  // Initialize socket separately from fetching messages
+  // Initialize Pusher and fetch messages
   useEffect(() => {
-    if (socket.current) {
-      console.log("Cleaning up existing socket connection");
-      socket.current.disconnect();
-      socket.current = null;
-    }
-    
-    if (!session?.user?.email) {
-      console.log("No session, skipping socket connection");
-      return;
-    }
-    
-    console.log("Initializing new socket connection for user:", session.user.email);
+    if (!session?.user?.email || !teamId) return;
 
-    // Connect to WebSocket with auth data
-    socket.current = io({
-      path: "/api/socket/io",
-      addTrailingSlash: false,
-      auth: {
-        userId: session.user.email,
-        teamId: teamId
-      },
-      query: {
-        userId: session.user.email,
-        teamId: teamId
-      },
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 10000,
-      autoConnect: true,
-      forceNew: true
-    });
+    // Subscribe to the team channel
+    const channelName = `team-${teamId}`;
+    const channel = pusherClient.subscribe(channelName);
+    setIsConnected(true);
 
-    // Connection status
-    socket.current.on('connect', () => {
-      console.log('Connected to chat server with ID:', socket.current.id);
-      setIsConnected(true);
-      
-      // Join team channel after connection is established
-      if (session?.user?.email) {
-        socket.current.emit("join-team", {
-          teamId: teamId,
-          userId: session.user.email
-        });
-        console.log("Joined team room:", teamId);
-      }
-      
-      // Fetch messages after successful connection
-      fetchMessages();
-    });
-    
-    socket.current.on('connect_error', (error: Error) => {
-      console.error('Connection error:', error);
-      setIsConnected(false);
-      toast.error("Connection error. Attempting to reconnect...");
-    });
-    
-    socket.current.on('disconnect', (reason: string) => {
-      console.log('Disconnected from chat server:', reason);
-      setIsConnected(false);
-      
-      // Attempt to reconnect if it wasn't an intentional disconnect
-      if (reason !== 'io client disconnect') {
-        console.log('Attempting to reconnect...');
-        socket.current.connect();
-      }
-    });
-
-    // Reconnect event
-    socket.current.on('reconnect', (attemptNumber: number) => {
-      console.log('Reconnected after', attemptNumber, 'attempts');
-      setIsConnected(true);
-      
-      // Rejoin the team room
-      if (session?.user?.email) {
-        socket.current.emit("join-team", {
-          teamId: teamId,
-          userId: session?.user?.email
-        });
-      }
-    });
-
-    // Listen for new messages
-    socket.current.on("new-message", (message: MessageType) => {
-      console.log("Received new message via socket:", message);
-      console.log("Current channel:", currentChannel);
-      console.log("Message channel:", message.channel);
-      console.log("Current messages:", messages);
-
+    // Handle new messages
+    channel.bind('new-message', (message: MessageType) => {
+      console.log("Received new message:", message);
       if (message.channel === currentChannel) {
         setMessages((prev) => {
-          // Check if message already exists to prevent duplicates
-          const exists = prev.some(m => m._id === message._id);
+          // More thorough duplicate check
+          const exists = prev.some(m => 
+            m._id === message._id || // Check permanent ID
+            (m.content === message.content && // Or check content and timestamp
+             m.sender.email === message.sender.email &&
+             Math.abs(new Date(m.createdAt).getTime() - new Date(message.createdAt).getTime()) < 1000)
+          );
           if (exists) {
-            console.log("Message already exists, skipping");
+            console.log("Duplicate message detected, skipping");
             return prev;
           }
-          console.log("Adding new message to state");
           return [...prev, message];
         });
       }
     });
-    
-    // Listen for message confirmations
-    socket.current.on("message-received", (confirmation: { id: string, status: string }) => {
-      console.log("Message received confirmation:", confirmation);
-    });
 
-    socket.current.on("error", (error: string) => {
-      console.error("Socket error:", error);
-      toast.error(error);
-    });
+    // Fetch initial messages
+    fetchMessages();
 
     return () => {
-      if (socket.current) {
-        console.log("Disconnecting socket on cleanup");
-        socket.current.off("new-message");
-        socket.current.off("message-received");
-        socket.current.off("error");
-        socket.current.disconnect();
-      }
+      channel.unbind_all();
+      pusherClient.unsubscribe(channelName);
     };
-  }, [teamId, session, currentChannel, messages]); // Add messages to dependencies to track updates
-  
-  // Fetch messages when channel changes
-  useEffect(() => {
-    if (isConnected) {
-      fetchMessages();
-    }
-  }, [currentChannel, isConnected]);
+  }, [teamId, session, currentChannel]);
 
   // Auto scroll to bottom when new messages come
   useEffect(() => {
     if (scrollAreaRef.current) {
-      // scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
       scrollAreaRef.current.scrollIntoView({
         behavior: "smooth",
         block: "end",
@@ -240,14 +144,15 @@ export default function ChatPage() {
     }
 
     // Create a temporary ID for optimistic update
-    const tempId = `temp-${Date.now()}`;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const timestamp = new Date().toISOString();
     
     const messageData = {
       _id: tempId,
       content: newMessage.trim(),
       channel: currentChannel,
       teamId: teamId,
-      createdAt: new Date().toISOString(),
+      createdAt: timestamp,
       sender: {
         email: session.user.email,
         name: session.user.name || session.user.email,
@@ -271,16 +176,24 @@ export default function ChatPage() {
         : undefined,
     };
 
-    // Optimistically update UI
-    setMessages(prev => [...prev, messageData]);
+    // Clear input immediately for better UX
     setNewMessage("");
     setReplyTo(null);
 
-    try {
-      // Send via socket for immediate broadcast
-      socket.current.emit("send-message", messageData);
+    // Optimistically update UI
+    setMessages(prev => {
+      // Check for duplicates before adding
+      const isDuplicate = prev.some(m => 
+        m.content === messageData.content &&
+        m.sender.email === messageData.sender.email &&
+        Math.abs(new Date(m.createdAt).getTime() - new Date(timestamp).getTime()) < 1000
+      );
+      if (isDuplicate) return prev;
+      return [...prev, messageData];
+    });
 
-      // Save to database in background
+    try {
+      // Send message to server
       const response = await fetch(`/api/teams/${teamId}/chat`, {
         method: 'POST',
         headers: {
@@ -298,13 +211,17 @@ export default function ChatPage() {
         throw new Error(errorData.error || 'Failed to send message');
       }
 
-      // Get the permanent ID from server
       const { data: savedMessage } = await response.json();
       
       // Update the temporary message with the permanent one
       setMessages(prev => 
         prev.map(msg => 
-          msg._id === tempId ? savedMessage : msg
+          msg._id === tempId || // Match by temp ID
+          (msg.content === messageData.content && // Or match by content and timestamp
+           msg.sender.email === messageData.sender.email &&
+           Math.abs(new Date(msg.createdAt).getTime() - new Date(timestamp).getTime()) < 1000)
+            ? savedMessage 
+            : msg
         )
       );
 
@@ -373,44 +290,44 @@ export default function ChatPage() {
                   >
                     {msg.sender.email !== session?.user?.email && (
                       <Avatar>
-                      <AvatarImage src={msg.sender.avatar} />
-                      <AvatarFallback>{msg.sender.initials}</AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div className={`grid gap-1.5 ${
-                    msg.sender.email === session?.user?.email ? 'text-right' : ''
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <div className="font-semibold">{msg.sender.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatMessageTime(msg.createdAt)}
-                      </div>
-                    </div>
-                    
-                    {/* Reply content if exists */}
-                    {msg.replyTo && (
-                      <div className="mb-1 p-2 border-l-4 border-primary bg-muted rounded text-xs text-left">
-                        <span className="font-semibold">{msg.replyTo.senderName}:</span> {msg.replyTo.content}
-                      </div>
+                        <AvatarImage src={msg.sender.avatar} />
+                        <AvatarFallback>{msg.sender.initials}</AvatarFallback>
+                      </Avatar>
                     )}
-                    
-                    {/* Actual message */}
-                    <div className={`px-4 py-2 rounded-lg ${
-                      msg.sender.email === session?.user?.email 
-                        ? 'bg-primary text-primary-foreground ml-auto'
-                        : 'bg-muted'
+                    <div className={`grid gap-1.5 ${
+                      msg.sender.email === session?.user?.email ? 'text-right' : ''
                     }`}>
-                      {msg.content}
-                    </div>
-                    
-                    {/* Reply button */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs self-start"
-                      onClick={() => setReplyTo(msg)}
-                    >
-                      Reply
+                      <div className="flex items-center gap-2">
+                        <div className="font-semibold">{msg.sender.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatMessageTime(msg.createdAt)}
+                        </div>
+                      </div>
+                      
+                      {/* Reply content if exists */}
+                      {msg.replyTo && (
+                        <div className="mb-1 p-2 border-l-4 border-primary bg-muted rounded text-xs text-left">
+                          <span className="font-semibold">{msg.replyTo.senderName}:</span> {msg.replyTo.content}
+                        </div>
+                      )}
+                      
+                      {/* Actual message */}
+                      <div className={`px-4 py-2 rounded-lg ${
+                        msg.sender.email === session?.user?.email 
+                          ? 'bg-primary text-primary-foreground ml-auto'
+                          : 'bg-muted'
+                      }`}>
+                        {msg.content}
+                      </div>
+                      
+                      {/* Reply button */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs self-start"
+                        onClick={() => setReplyTo(msg)}
+                      >
+                        Reply
                       </Button>
                     </div>
                   </div>
