@@ -2,26 +2,11 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
-import { verifyJwt } from '@/lib/jwt';
 
 export async function GET(request: Request) {
   try {
-    // Get token from Authorization header
-    const token = request.headers.get("Authorization")?.split(" ")[1];
-    let userEmail;
-
-    // Try to get user from NextAuth session
     const session = await getServerSession(authOptions);
-    if (session?.user?.email) {
-      userEmail = session.user.email;
-    }
-    // If no session, try to get user from JWT
-    else if (token) {
-      const decoded = verifyJwt(token);
-      userEmail = decoded.email;
-    }
-
-    if (!userEmail) {
+    if (!session?.user?.email) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -33,7 +18,7 @@ export async function GET(request: Request) {
     // Find all teams where user is a member
     const teams = await db.collection("teams")
       .find({
-        "members.email": userEmail
+        "members.email": session.user.email
       })
       .toArray();
 

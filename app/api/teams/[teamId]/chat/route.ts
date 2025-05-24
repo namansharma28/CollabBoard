@@ -87,29 +87,23 @@ export async function GET(
 
     let query = {};
     
-    // If DM, fetch messages between the user and recipient
     if (recipient) {
       query = {
-        teamId: new ObjectId(teamId),
+        teamId: { 
+          $in: [new ObjectId(teamId), teamId] 
+        },
         $or: [
-          // Messages sent by user to recipient
-          { 
-            "sender.email": session.user.email,
-            recipient: recipient
-          },
-          // Messages sent by recipient to user
-          {
-            "sender.email": recipient,
-            recipient: session.user.email
-          }
+          { "sender.email": session.user.email, recipient: recipient },
+          { "sender.email": recipient, recipient: session.user.email }
         ]
       };
     } else {
-      // Regular channel messages
       query = {
-        teamId: new ObjectId(teamId),
+        teamId: { 
+          $in: [new ObjectId(teamId), teamId] 
+        },
         channel: channel,
-        recipient: { $exists: false }  // Exclude DMs
+        recipient: { $exists: false }
       };
     }
 
@@ -141,6 +135,7 @@ export async function POST(
   context: RouteContext
 ) {
   try {
+    console.log("POST /api/teams/[teamId]/chat called");
     // Extract and validate teamId
     const params = await context.params;
     const teamId = params.teamId;
@@ -154,7 +149,11 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { content, channel, recipient } = await request.json();
+    const body = await request.json();
+    console.log("POST body:", body);
+
+    const { content, channel = 'general', recipient } = body;
+    
     if (!content?.trim()) {
       return NextResponse.json({ error: "Message content is required" }, { status: 400 });
     }
@@ -175,7 +174,8 @@ export async function POST(
     const message: MessageDocument = {
       teamId: new ObjectId(teamId),
       content: content.trim(),
-      createdAt: new Date().toISOString(), // Make sure it's a string
+      channel: channel,
+      createdAt: new Date().toISOString(),
       sender: {
         email: session.user.email,
         name: session.user.name || session.user.email,
@@ -187,30 +187,32 @@ export async function POST(
               .join('')
               .toUpperCase()
           : session.user.email[0].toUpperCase(),
-      },
+      }
     };
-    
-    // Add channel or recipient but not both
+
+    // Add recipient if it exists
     if (recipient) {
       message.recipient = recipient;
-    } else {
-      message.channel = channel || 'general';
     }
 
+    console.log("Inserting message:", message);
     const result = await db.collection("messages").insertOne(message);
 
     // Format response
     const responseMessage = {
       ...message,
       _id: result.insertedId.toString(),
-      teamId: teamId
+      teamId: teamId // Send back string version
     };
 
-    return NextResponse.json(responseMessage);
+    return NextResponse.json({ 
+      message: "Message sent successfully",
+      data: responseMessage
+    }, { status: 201 });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error creating message:", error);
     return NextResponse.json(
-      { error: "Failed to send message" },
+      { error: "Failed to create message" },
       { status: 500 }
     );
   }

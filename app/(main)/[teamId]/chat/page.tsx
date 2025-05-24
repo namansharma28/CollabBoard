@@ -95,17 +95,30 @@ export default function ChatPage() {
       socket.current = null;
     }
     
-    console.log("Initializing new socket connection");
+    if (!session?.user?.email) {
+      console.log("No session, skipping socket connection");
+      return;
+    }
+    
+    console.log("Initializing new socket connection for user:", session.user.email);
 
-    // Connect to WebSocket with correct path
+    // Connect to WebSocket with auth data
     socket.current = io({
       path: "/api/socket/io",
       addTrailingSlash: false,
+      auth: {
+        userId: session.user.email,
+        teamId: teamId
+      },
+      query: {
+        userId: session.user.email,
+        teamId: teamId
+      },
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       timeout: 10000,
       autoConnect: true,
-      forceNew: true // Force a new connection
+      forceNew: true
     });
 
     // Connection status
@@ -114,8 +127,13 @@ export default function ChatPage() {
       setIsConnected(true);
       
       // Join team channel after connection is established
-    socket.current.emit("join-team", teamId);
-      console.log("Joined team room:", teamId);
+      if (session?.user?.email) {
+        socket.current.emit("join-team", {
+          teamId: teamId,
+          userId: session.user.email
+        });
+        console.log("Joined team room:", teamId);
+      }
       
       // Fetch messages after successful connection
       fetchMessages();
@@ -124,19 +142,52 @@ export default function ChatPage() {
     socket.current.on('connect_error', (error: Error) => {
       console.error('Connection error:', error);
       setIsConnected(false);
-      toast.error("Connection error. Please refresh the page.");
+      toast.error("Connection error. Attempting to reconnect...");
     });
     
     socket.current.on('disconnect', (reason: string) => {
       console.log('Disconnected from chat server:', reason);
       setIsConnected(false);
+      
+      // Attempt to reconnect if it wasn't an intentional disconnect
+      if (reason !== 'io client disconnect') {
+        console.log('Attempting to reconnect...');
+        socket.current.connect();
+      }
+    });
+
+    // Reconnect event
+    socket.current.on('reconnect', (attemptNumber: number) => {
+      console.log('Reconnected after', attemptNumber, 'attempts');
+      setIsConnected(true);
+      
+      // Rejoin the team room
+      if (session?.user?.email) {
+        socket.current.emit("join-team", {
+          teamId: teamId,
+          userId: session?.user?.email
+        });
+      }
     });
 
     // Listen for new messages
     socket.current.on("new-message", (message: MessageType) => {
-      console.log("Received new message:", message);
+      console.log("Received new message via socket:", message);
+      console.log("Current channel:", currentChannel);
+      console.log("Message channel:", message.channel);
+      console.log("Current messages:", messages);
+
       if (message.channel === currentChannel) {
-        setMessages((prev) => [...prev, message]);
+        setMessages((prev) => {
+          // Check if message already exists to prevent duplicates
+          const exists = prev.some(m => m._id === message._id);
+          if (exists) {
+            console.log("Message already exists, skipping");
+            return prev;
+          }
+          console.log("Adding new message to state");
+          return [...prev, message];
+        });
       }
     });
     
@@ -153,10 +204,13 @@ export default function ChatPage() {
     return () => {
       if (socket.current) {
         console.log("Disconnecting socket on cleanup");
+        socket.current.off("new-message");
+        socket.current.off("message-received");
+        socket.current.off("error");
         socket.current.disconnect();
       }
     };
-  }, [teamId]); // Only re-initialize when teamId changes
+  }, [teamId, session, currentChannel, messages]); // Add messages to dependencies to track updates
   
   // Fetch messages when channel changes
   useEffect(() => {
@@ -178,30 +232,35 @@ export default function ChatPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !session?.user) return;
+    if (!newMessage.trim() || !session?.user?.email || !session?.user?.name) return;
     
     if (!isConnected) {
       toast.error("Not connected to chat server. Please wait or refresh the page.");
       return;
     }
 
-    const msgPayload = {
+    // Create a temporary ID for optimistic update
+    const tempId = `temp-${Date.now()}`;
+    
+    const messageData = {
+      _id: tempId,
       content: newMessage.trim(),
       channel: currentChannel,
       teamId: teamId,
+      createdAt: new Date().toISOString(),
       sender: {
-        email: session?.user?.email || "",
-        name: session?.user?.name || "",
+        email: session.user.email,
+        name: session.user.name || session.user.email,
         avatar: `https://ui-avatars.com/api/?name=${
-          session?.user?.name || session?.user?.email
+          session.user.name || session.user.email
         }&background=random`,
-        initials: session?.user?.name
+        initials: session.user.name
           ? session.user.name
               .split(" ")
               .map((n: string) => n[0])
               .join("")
               .toUpperCase()
-          : session?.user?.email?.[0]?.toUpperCase() || "U",
+          : session.user.email[0].toUpperCase(),
       },
       replyTo: replyTo
         ? {
@@ -212,15 +271,48 @@ export default function ChatPage() {
         : undefined,
     };
 
-    console.log("Sending message payload:", msgPayload);
+    // Optimistically update UI
+    setMessages(prev => [...prev, messageData]);
+    setNewMessage("");
+    setReplyTo(null);
 
     try {
-      socket.current.emit("send-message", msgPayload);
-      setNewMessage("");
-      setReplyTo(null);
+      // Send via socket for immediate broadcast
+      socket.current.emit("send-message", messageData);
+
+      // Save to database in background
+      const response = await fetch(`/api/teams/${teamId}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: messageData.content,
+          channel: currentChannel,
+          replyTo: messageData.replyTo
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
+      // Get the permanent ID from server
+      const { data: savedMessage } = await response.json();
+      
+      // Update the temporary message with the permanent one
+      setMessages(prev => 
+        prev.map(msg => 
+          msg._id === tempId ? savedMessage : msg
+        )
+      );
+
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Failed to send message");
+      // Remove the temporary message on error
+      setMessages(prev => prev.filter(msg => msg._id !== tempId));
+      toast.error(error instanceof Error ? error.message : "Failed to send message");
     }
   };
 

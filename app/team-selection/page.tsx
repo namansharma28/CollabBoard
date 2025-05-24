@@ -2,171 +2,107 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { Plus, Users } from "lucide-react";
 import { CreateTeamDialog } from "@/components/teams/create-team-dialog";
 import { JoinTeamDialog } from "@/components/teams/join-team-dialog";
-import { Users, Plus, ArrowRight } from "lucide-react";
-import { toast } from "react-hot-toast";
 
 interface Team {
   _id: string;
   name: string;
-  description: string;
   members: Array<{
     email: string;
-    role: 'admin' | 'member';
+    role: string;
   }>;
 }
 
 export default function TeamSelectionPage() {
-  const [createTeamOpen, setCreateTeamOpen] = useState(false);
-  const [joinTeamOpen, setJoinTeamOpen] = useState(false);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { data: session } = useSession();
+  const { toast } = useToast();
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
+  const [isJoinTeamOpen, setIsJoinTeamOpen] = useState(false);
 
   useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const response = await fetch('/api/teams');
+        if (!response.ok) {
+          throw new Error('Failed to fetch teams');
+        }
+        const data = await response.json();
+        setTeams(data);
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load teams. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchTeams();
-  }, []);
+  }, [toast]);
 
-  const fetchTeams = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('/api/teams', { headers });
-      if (!response.ok) {
-        throw new Error('Failed to fetch teams');
-      }
-      const data = await response.json();
-      setTeams(data.teams || []);
-    } catch (error) {
-      console.error('Error fetching teams:', error);
-      toast.error('Failed to load teams');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleTeamClick = (teamId: string) => {
+    router.push(`/${teamId}/dashboard`);
   };
 
-  const getUserRole = (team: Team) => {
-    const member = team.members.find(m => m.email === session?.user?.email);
-    return member?.role || 'member';
-  };
-
-  const getMemberCount = (team: Team) => {
-    return team.members.length;
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container py-10">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Select Team</h1>
-            <p className="text-muted-foreground">
-              Choose a team to collaborate with or create a new one
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="border-dashed">
-              <CardHeader>
-                <CardTitle>Create New Team</CardTitle>
-                <CardDescription>
-                  Start a new workspace for your team
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  onClick={() => setCreateTeamOpen(true)}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Team
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-dashed">
-              <CardHeader>
-                <CardTitle>Join Existing Team</CardTitle>
-                <CardDescription>
-                  Join using an invite code
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  onClick={() => setJoinTeamOpen(true)}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  Join Team
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Your Teams</h2>
-            {isLoading ? (
-              <div className="text-center py-4">Loading teams...</div>
-            ) : teams.length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
-                You are not a member of any teams yet
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {teams.map((team) => (
-                  <Card key={team._id} className="hover:bg-muted/50 transition-colors">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>{team.name}</CardTitle>
-                          <CardDescription>{team.description}</CardDescription>
-                        </div>
-                        <Button onClick={() => router.push(`/${team._id}/dashboard`)}>
-                          Select
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Users className="mr-2 h-4 w-4" />
-                        {getMemberCount(team)} members
-                        <span className="ml-4 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
-                          {getUserRole(team)}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+    <div className="container mx-auto px-4 py-12">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Your Teams</h1>
+        <div className="space-x-4">
+          <Button onClick={() => setIsJoinTeamOpen(true)} variant="outline">
+            <Users className="mr-2 h-4 w-4" />
+            Join Team
+          </Button>
+          <Button onClick={() => setIsCreateTeamOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Team
+          </Button>
         </div>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {teams.map((team) => (
+          <Card 
+            key={team._id} 
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => handleTeamClick(team._id)}
+          >
+            <CardHeader>
+              <CardTitle>{team.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-500">
+                {team.members.length} member{team.members.length !== 1 ? 's' : ''}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       <CreateTeamDialog 
-        open={createTeamOpen} 
-        onOpenChange={setCreateTeamOpen}
-        onTeamCreated={fetchTeams}
+        open={isCreateTeamOpen}
+        onOpenChange={setIsCreateTeamOpen}
       />
-      <JoinTeamDialog 
-        open={joinTeamOpen} 
-        onOpenChange={setJoinTeamOpen}
-        onTeamJoined={fetchTeams}
+
+      <JoinTeamDialog
+        open={isJoinTeamOpen}
+        onOpenChange={setIsJoinTeamOpen}
       />
     </div>
   );

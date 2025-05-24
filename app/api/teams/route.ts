@@ -2,47 +2,24 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
-import { verifyJwt } from "@/lib/jwt";
 
 export async function GET(request: Request) {
   try {
-    // Get token from Authorization header
-    const token = request.headers.get("Authorization")?.split(" ")[1];
-    let userEmail;
-
-    // Try to get user from NextAuth session
     const session = await getServerSession(authOptions);
-    if (session?.user?.email) {
-      userEmail = session.user.email;
-    }
-    // If no session, try to get user from JWT
-    else if (token) {
-      const decoded = verifyJwt(token);
-      userEmail = decoded.email;
-    }
-
-    if (!userEmail) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { db } = await connectToDatabase();
-    
-    // Find all teams where user is a member
-    const teams = await db.collection("teams")
-      .find({
-        "members.email": userEmail
-      })
-      .toArray();
+    const teams = await db.collection("teams").find({
+      "members.email": session.user.email
+    }).toArray();
 
-    return NextResponse.json({ teams });
-    
+    return NextResponse.json(teams);
   } catch (error) {
     console.error("Error fetching teams:", error);
     return NextResponse.json(
-      { error: "Error fetching teams" },
+      { error: "Failed to fetch teams" },
       { status: 500 }
     );
   }
@@ -50,51 +27,39 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    // Get token from Authorization header
-    const token = request.headers.get("Authorization")?.split(" ")[1];
-    let userEmail;
-
-    // Try to get user from NextAuth session
     const session = await getServerSession(authOptions);
-    if (session?.user?.email) {
-      userEmail = session.user.email;
-    }
-    // If no session, try to get user from JWT
-    else if (token) {
-      const decoded = verifyJwt(token);
-      userEmail = decoded.email;
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!userEmail) {
+    const { name } = await request.json();
+    if (!name) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Team name is required" },
+        { status: 400 }
       );
     }
 
-    const { name, description } = await request.json();
     const { db } = await connectToDatabase();
-
-    const team = {
+    const result = await db.collection("teams").insertOne({
       name,
-      description,
       members: [{
-        email: userEmail,
+        email: session.user.email,
         role: "admin",
-        joinedAt: new Date()
+        joinedAt: new Date().toISOString()
       }],
-      createdBy: userEmail,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      code: Math.random().toString(36).substring(2, 8).toUpperCase()
-    };
+      createdAt: new Date().toISOString()
+    });
 
-    const result = await db.collection("teams").insertOne(team);
-
-    return NextResponse.json({
-      id: result.insertedId,
-      ...team
-    }, { status: 201 });
+    return NextResponse.json({ 
+      _id: result.insertedId,
+      name,
+      members: [{
+        email: session.user.email,
+        role: "admin",
+        joinedAt: new Date().toISOString()
+      }]
+    });
   } catch (error) {
     console.error("Error creating team:", error);
     return NextResponse.json(

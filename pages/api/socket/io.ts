@@ -57,42 +57,17 @@ export default async function handler(req: NextApiRequest, res: any) {
         console.log("Received message from client:", data);
         
         try {
-          const { db } = await connectToDatabase();
-          
-          // Create the message object
-          const message = {
-            teamId: new ObjectId(data.teamId),
-            channel: data.channel,
-            content: data.content,
-            createdAt: new Date().toISOString(),
-            sender: data.sender,
-            replyTo: data.replyTo || undefined,
-          };
-          
-          // Save to database
-          const result = await db.collection("messages").insertOne(message);
-          
-          // Create a serializable version (with string IDs instead of ObjectIds)
-          const savedMessage = { 
-            ...message, 
-            _id: result.insertedId.toString(),
-            teamId: data.teamId // Use the string teamId from the client
-          };
-          
-          console.log("Emitting new-message to room:", `team-${data.teamId}`);
-          
-          // Broadcast to everyone in the room, including sender to confirm receipt
-          io.to(`team-${data.teamId}`).emit("new-message", savedMessage);
+          // Broadcast to everyone in the room EXCEPT the sender
+          socket.to(`team-${data.teamId}`).emit("new-message", data);
           
           // Send confirmation to sender
           socket.emit("message-received", { 
-            id: savedMessage._id,
+            id: data._id,
             status: "success" 
           });
-          
         } catch (err) {
-          console.error("Error saving message:", err);
-          socket.emit("error", "Failed to save message");
+          console.error("Error broadcasting message:", err);
+          socket.emit("error", "Failed to broadcast message");
         }
       });
       

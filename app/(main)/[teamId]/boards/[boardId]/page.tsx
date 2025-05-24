@@ -60,31 +60,85 @@ export default function BoardPage() {
   // Function to fetch board and tasks
   const fetchBoardAndTasks = async () => {
     try {
+      if (!session?.user?.email) {
+        console.log('No session found, waiting for session...');
+        return;
+      }
+
       setLoading(true);
+      console.log('Fetching board with session:', session.user.email);
       
       // Fetch board details
-      const boardResponse = await fetch(`/api/teams/${teamId}/boards/${boardId}`);
+      const boardResponse = await fetch(`/api/teams/${teamId}/boards/${boardId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
       if (!boardResponse.ok) {
-        throw new Error('Failed to fetch board details');
+        const errorData = await boardResponse.json();
+        console.error('Board fetch error:', {
+          status: boardResponse.status,
+          statusText: boardResponse.statusText,
+          error: errorData,
+          url: `/api/teams/${teamId}/boards/${boardId}`
+        });
+        
+        // Show more specific error message
+        let errorMessage = 'Failed to load board';
+        if (boardResponse.status === 404) {
+          if (errorData.details) {
+            errorMessage = `Board not found in this team. Board belongs to team ${errorData.details.boardTeamId} but you're trying to access it from team ${errorData.details.requestedTeamId}`;
+          } else {
+            errorMessage = 'Board not found. It may have been deleted or you may not have access.';
+          }
+        } else if (boardResponse.status === 401) {
+          errorMessage = 'Please sign in to view this board';
+        } else if (boardResponse.status === 403) {
+          errorMessage = 'You do not have permission to view this board';
+        }
+        
+        throw new Error(errorData.error || errorMessage);
       }
+      
       const boardData = await boardResponse.json();
+      console.log('Board data received:', boardData);
+      
+      if (!boardData.board) {
+        throw new Error('Invalid board data received from server');
+      }
+      
       setBoard(boardData.board);
       
       // Check if user is admin (simplified - in a real app you'd check against team roles)
-      setIsAdmin(boardData.board.createdBy?.email === session?.user?.email);
+      setIsAdmin(boardData.board.createdBy?.email === session.user.email);
       
       // Fetch tasks
-      const tasksResponse = await fetch(`/api/teams/${teamId}/boards/${boardId}/tasks`);
+      const tasksResponse = await fetch(`/api/teams/${teamId}/boards/${boardId}/tasks`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
       if (!tasksResponse.ok) {
-        throw new Error('Failed to fetch tasks');
+        const errorData = await tasksResponse.json();
+        console.error('Tasks fetch error:', {
+          status: tasksResponse.status,
+          statusText: tasksResponse.statusText,
+          error: errorData
+        });
+        throw new Error(errorData.error || `Failed to fetch tasks (${tasksResponse.status})`);
       }
+      
       const tasksData = await tasksResponse.json();
       setTasks(tasksData.tasks);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in fetchBoardAndTasks:', error);
       toast({
         title: "Error",
-        description: "Failed to load board data",
+        description: error instanceof Error ? error.message : "Failed to load board data",
         variant: "destructive"
       });
     } finally {

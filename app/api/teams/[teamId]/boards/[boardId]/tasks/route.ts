@@ -58,7 +58,10 @@ export async function GET(
     // Verify board exists and belongs to the team
     const board = await db.collection("boards").findOne({
       _id: new ObjectId(params.boardId),
-      teamId: params.teamId
+      $or: [
+        { teamId: new ObjectId(params.teamId) },
+        { teamId: params.teamId }
+      ]
     });
 
     if (!board) {
@@ -67,7 +70,10 @@ export async function GET(
 
     // Fetch tasks for the board
     const tasks = await db.collection("tasks")
-      .find({ boardId: params.boardId })
+      .find({ $or: [
+        { boardId: new ObjectId(params.boardId) },
+        { boardId: params.boardId }
+      ] })
       .toArray();
 
     // Convert MongoDB _id to string for each task
@@ -112,7 +118,10 @@ export async function POST(
     // Verify board exists and belongs to the team
     const board = await db.collection("boards").findOne({
       _id: new ObjectId(params.boardId),
-      teamId: params.teamId
+      $or: [
+        { teamId: new ObjectId(params.teamId) },
+        { teamId: params.teamId }
+      ]
     });
 
     if (!board) {

@@ -17,41 +17,88 @@ export async function GET(
 ) {
   try {
     const params = await context.params;
+    console.log('Fetching board with params:', { teamId: params.teamId, boardId: params.boardId });
+    
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      console.log('No session found');
+      return NextResponse.json({ error: "Unauthorized - No session" }, { status: 401 });
     }
+
+    console.log('Session user:', session.user.email);
 
     const { db } = await connectToDatabase();
 
+    // Validate ObjectId
+    if (!ObjectId.isValid(params.teamId) || !ObjectId.isValid(params.boardId)) {
+      console.log('Invalid ObjectId:', { teamId: params.teamId, boardId: params.boardId });
+      return NextResponse.json({ error: "Invalid team or board ID" }, { status: 400 });
+    }
+
+    // First check if the board exists at all
+    const boardExists = await db.collection("boards").findOne({
+      _id: new ObjectId(params.boardId)
+    });
+
+    if (!boardExists) {
+      console.log('Board does not exist:', { boardId: params.boardId });
+      return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    }
+
+    // Log the board's teamId for debugging
+    console.log('Board exists with teamId:', {
+      boardId: params.boardId,
+      boardTeamId: boardExists.teamId?.toString(),
+      requestedTeamId: params.teamId
+    });
+
+    // Then check if user has access to the team
     const team = await db.collection("teams").findOne({
       _id: new ObjectId(params.teamId),
       "members.email": session.user.email,
     });
 
     if (!team) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
+      console.log('Team not found or user not a member:', { teamId: params.teamId, email: session.user.email });
+      return NextResponse.json({ error: "Team not found or access denied" }, { status: 404 });
     }
 
+    // Finally check if board belongs to team
     const board = await db.collection("boards").findOne({
       _id: new ObjectId(params.boardId),
-      teamId: new ObjectId(params.teamId),
+      $or: [
+        { teamId: new ObjectId(params.teamId) },
+        { teamId: params.teamId }
+      ]
     });
 
     if (!board) {
-      return NextResponse.json({ error: "Board not found" }, { status: 404 });
+      console.log('Board does not belong to team:', { 
+        boardId: params.boardId, 
+        boardTeamId: boardExists.teamId?.toString(),
+        requestedTeamId: params.teamId 
+      });
+      return NextResponse.json({ 
+        error: "Board not found in this team",
+        details: {
+          boardTeamId: boardExists.teamId?.toString(),
+          requestedTeamId: params.teamId
+        }
+      }, { status: 404 });
     }
 
     const boardWithStringId = {
       ...board,
       _id: board._id.toString(),
+      teamId: board.teamId.toString(),
     };
 
+    console.log('Successfully found board:', { boardId: params.boardId });
     return NextResponse.json({ board: boardWithStringId });
   } catch (error) {
     console.error("Error fetching board:", error);
     return NextResponse.json(
-      { error: "Failed to fetch board" },
+      { error: error instanceof Error ? error.message : "Failed to fetch board" },
       { status: 500 }
     );
   }
