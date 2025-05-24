@@ -172,7 +172,24 @@ export async function POST(
     }
 
     // Create message
-    const message = {
+    const message: {
+      teamId: ObjectId;
+      content: string;
+      channel: string;
+      createdAt: string;
+      sender: {
+        email: string;
+        name: string;
+        avatar: string;
+        initials: string;
+      };
+      recipient?: string;
+      replyTo?: {
+        _id: string;
+        senderName: string;
+        content: string;
+      };
+    } = {
       teamId: new ObjectId(teamId),
       content: content.trim(),
       channel: channel,

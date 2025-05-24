@@ -37,7 +37,7 @@ function ErrorContent() {
           {error}
         </div>
         <p className="mt-4 text-sm text-gray-600">
-          You'll be redirected to the login page in 5 seconds, or you can click the button below.
+          You will be redirected to the login page in 5 seconds, or you can click the button below.
         </p>
       </CardContent>
       <CardFooter>
