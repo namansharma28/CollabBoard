@@ -5,6 +5,7 @@ import { MainNav } from "@/components/main-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserNav } from "@/components/user-nav";
 import { useRouter, useParams } from "next/navigation";
+import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 
 export function SiteHeader() {
   const router = useRouter();
@@ -16,8 +17,14 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
+            <ImageWithFallback 
+              src="/teamlane.svg" 
+              fallbackSrc="/teamlane.png" 
+              alt="TeamLane Logo" 
+              className="h-6 w-auto" 
+            />
             <span className="hidden font-bold sm:inline-block">
-              TeamSpace
+              TeamLane
             </span>
           </Link>
           <MainNav />

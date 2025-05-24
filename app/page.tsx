@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
@@ -155,7 +156,7 @@ export default function LandingPage() {
   // Testimonials data
   const testimonials = [
     {
-      quote: "TeamSpace has transformed how our team collaborates. The Kanban board is intuitive and the real-time notes feature saves us so much time.",
+      quote: "TeamLane has transformed how our team collaborates. The Kanban board is intuitive and the real-time notes feature saves us so much time.",
       name: "Sarah Johnson",
       role: "Product Manager, Acme Inc",
       initials: "SJ"
@@ -167,7 +168,7 @@ export default function LandingPage() {
       initials: "MR"
     },
     {
-      quote: "We've tried many collaboration tools, but TeamSpace stands out with its intuitive interface and comprehensive feature set. Highly recommended!",
+      quote: "We've tried many collaboration tools, but TeamLane stands out with its intuitive interface and comprehensive feature set. Highly recommended!",
       name: "Emily Chen",
       role: "Marketing Director, GrowthLabs",
       initials: "EC"
@@ -256,7 +257,15 @@ export default function LandingPage() {
       <header className={`border-b sticky top-0 z-50 bg-background/80 backdrop-blur-md transition-all duration-300 ${scrolled ? 'shadow-md' : ''}`}>
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="font-bold text-xl bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent animate-pulse">TeamSpace</div>
+            <Link href="/" className="flex items-center space-x-2">
+              <ImageWithFallback 
+                src="/teamlane.svg" 
+                fallbackSrc="/teamlane.png" 
+                alt="TeamLane Logo" 
+                className="h-8 w-auto" 
+              />
+               <div className="font-bold text-xl bg-gradient-to-r from-primary to-blue-200 bg-clip-text text-transparent ">TeamLane</div>
+            </Link>
           </div>
           <nav className={`hidden md:flex items-center space-x-6 text-sm font-medium`}>
             <Link href="/#features" className="transition-colors hover:text-foreground/80 hover:underline underline-offset-4">
@@ -381,8 +390,8 @@ export default function LandingPage() {
                 <div className="aspect-video rounded-xl bg-foreground/5 overflow-hidden border shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
                   <img
-                    alt="TeamSpace Dashboard"
-                    src="https://images.pexels.com/photos/7709236/pexels-photo-7709236.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+                    alt="TeamLane Dashboard"
+                    src="/animat.gif"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </div>
@@ -403,7 +412,7 @@ export default function LandingPage() {
                   Everything you need to collaborate
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  TeamSpace provides all the tools your team needs to work efficiently together
+                  TeamLane provides all the tools your team needs to work efficiently together
                 </p>
               </div>
             </div>
@@ -442,7 +451,7 @@ export default function LandingPage() {
                   Trusted by teams everywhere
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  See what our customers have to say about TeamSpace
+                  See what our customers have to say about TeamLane
                 </p>
               </div>
             </div>
@@ -473,7 +482,7 @@ export default function LandingPage() {
                     ))}
                   </div>
                   <p className="text-muted-foreground">
-                      "{testimonial.quote}"
+                      &quot;{testimonial.quote}&quot;
                   </p>
                 </div>
                 <div className="mt-6 flex items-center space-x-4">
@@ -506,7 +515,7 @@ export default function LandingPage() {
                   Simple, transparent pricing
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Choose the plan that's right for your team
+                  Choose the plan that&apos;s right for your team
                 </p>
               </div>
             </div>
@@ -585,7 +594,7 @@ export default function LandingPage() {
                   Ready to transform how your team works?
                 </h2>
                 <p className="mx-auto max-w-[700px] text-xl/relaxed text-primary-foreground/80">
-                  Join thousands of teams already using TeamSpace to collaborate more effectively
+                  Join thousands of teams already using TeamLane to collaborate more effectively
                 </p>
               </div>
               <div className="flex flex-col gap-3 min-[400px]:flex-row">

@@ -10,7 +10,7 @@ import { ToastProvider } from '@/components/ui/use-toast';
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '700'] });
 
 export const metadata: Metadata = {
-  title: 'TeamSpace | Collaborative Workspace',
+  title: 'TeamLane | Collaborative Workspace',
   description: 'A collaborative workspace for teams to organize, track progress, and communicate efficiently',
 };
 
@@ -21,6 +21,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#6f42c1" />
+      </head>
       <body className={inter.className}>
         <NextAuthProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>

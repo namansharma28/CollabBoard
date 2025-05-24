@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 
 export default function AuthLayout({
   children,
@@ -11,8 +12,14 @@ export default function AuthLayout({
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
       <div className="hidden md:flex bg-muted h-full flex-col justify-between p-10 bg-gradient-to-b from-indigo-500 to-purple-600">
         <div>
-          <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold text-white">TeamSpace</span>
+          <Link href="/" className="flex items-center space-x-2">
+            <ImageWithFallback 
+              src="/teamlane.svg" 
+              fallbackSrc="/teamlane.png" 
+              alt="TeamLane Logo" 
+              className="h-8 w-auto" 
+            />
+            <span className="text-2xl font-bold text-white">TeamLane</span>
           </Link>
         </div>
         <div className="space-y-6 text-white">
@@ -88,7 +95,7 @@ export default function AuthLayout({
           </div>
         </div>
         <div className="text-white/80 text-sm">
-          © 2025 TeamSpace. All rights reserved.
+          © 2025 TeamLane. All rights reserved.
         </div>
       </div>
       <div className="flex items-center justify-center p-6 md:p-8">

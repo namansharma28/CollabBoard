@@ -23,7 +23,6 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const from = searchParams?.get("from") || "/team-selection";
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   
   // Check for error message in the URL
   const error = searchParams?.get("error");
@@ -32,35 +31,6 @@ function LoginContent() {
   if (error) {
     toast.error(`Login error: ${error}`);
   }
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    const formData = new FormData(e.target as HTMLFormElement);
-
-    try {
-      const result = await signIn("credentials", {
-        email: formData.get("email"),
-        password: formData.get("password"),
-        redirect: false,
-        callbackUrl: from
-      });
-
-      if (result?.error) {
-        toast.error("Invalid credentials");
-        return;
-      }
-
-      toast.success("Login successful!");
-      router.push(from);
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -83,10 +53,10 @@ function LoginContent() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">Welcome back</CardTitle>
         <CardDescription>
-          Enter your email and password to sign in to your account
+          Sign in to your account using Google
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         <Button
           className="w-full"
           variant="outline"
@@ -117,78 +87,6 @@ function LoginContent() {
           )}
           Continue with Google
         </Button>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <form onSubmit={handleEmailLogin}>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-primary underline-offset-4 hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-0 h-full px-3"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {showPassword ? "Hide password" : "Show password"}
-                  </span>
-                </Button>
-              </div>
-            </div>
-            <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign in with Email"
-              )}
-            </Button>
-          </div>
-        </form>
 
         <div className="text-center w-full text-sm">
           Don&apos;t have an account?{" "}

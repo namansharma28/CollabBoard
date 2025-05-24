@@ -20,7 +20,6 @@ import toast from "react-hot-toast";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleGoogleSignup = async () => {
@@ -34,55 +33,15 @@ export default function RegisterPage() {
     setIsLoading(false);
   };
 
-  const handleEmailSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    const formData = new FormData(e.target as HTMLFormElement);
-    const userData = {
-      firstName: formData.get("first-name"),
-      lastName: formData.get("last-name"),
-      email: formData.get("email"),
-      password: formData.get("password"),
-    };
-
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Registration failed");
-      }
-
-      // Store the token
-      localStorage.setItem("token", data.token);
-      
-      toast.success("Account created successfully!");
-      router.push("/team-selection");
-    } catch (error) {
-      console.error("Registration error:", error);
-      toast.error(error instanceof Error ? error.message : "Registration failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1">
         <div className="flex justify-center md:hidden mb-4">
-          <h2 className="text-2xl font-bold">TeamSpace</h2>
+          <h2 className="text-2xl font-bold">TeamLane</h2>
         </div>
         <CardTitle className="text-2xl">Create an account</CardTitle>
         <CardDescription>
-          Enter your details to create your TeamSpace account
+          Sign up with Google to create your TeamLane account
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -128,71 +87,6 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <form onSubmit={handleEmailSignup}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first-name">First name</Label>
-                <Input id="first-name" name="first-name" placeholder="John" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last-name">Last name</Label>
-                <Input id="last-name" name="last-name" placeholder="Doe" required />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-0 h-full px-3"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {showPassword ? "Hide password" : "Show password"}
-                  </span>
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Password must be at least 8 characters long
-              </p>
-            </div>
-            <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Create account"
-              )}
-            </Button>
-          </div>
-        </form>
       </CardContent>
       <CardFooter>
         <div className="text-center w-full text-sm">
