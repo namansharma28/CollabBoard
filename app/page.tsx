@@ -9,6 +9,7 @@ import { toast } from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
+import Image from "next/image";
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
@@ -254,9 +255,9 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen overflow-hidden">
-      <header className={`border-b sticky top-0 z-50 bg-background/80 backdrop-blur-md transition-all duration-300 ${scrolled ? 'shadow-md' : ''}`}>
+      <header className={`border-b sticky top-0 z-50 bg-background/80 backdrop-blur-md transition-all duration-300 ${scrolled ? 'shadow-md' : ''} px-2 md:px-4 lg:px-6`}>
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pl-2 md:pl-4 lg:pl-3">
             <Link href="/" className="flex items-center space-x-2">
               <ImageWithFallback 
                 src="/teamlane.svg" 
@@ -389,10 +390,12 @@ export default function LandingPage() {
               <div className="mx-auto w-full max-w-[800px] lg:mx-0 animate-fade-in opacity-0" style={{ animationDelay: "0.8s", animationFillMode: "forwards" }}>
                 <div className="aspect-video rounded-xl bg-foreground/5 overflow-hidden border shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
-                  <img
+                  <Image
                     alt="TeamLane Dashboard"
                     src="/animat.gif"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    fill
+                    priority
                   />
                 </div>
               </div>

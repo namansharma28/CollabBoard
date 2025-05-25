@@ -246,7 +246,7 @@ export function TeamMembersDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="inviteEmail">Invite by Email</Label>
+                <Label htmlFor="inviteEmail">Add by Email</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     id="inviteEmail"

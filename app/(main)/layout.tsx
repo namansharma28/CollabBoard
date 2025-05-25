@@ -6,7 +6,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col px-2 md:px-4 lg:px-6">
       <SiteHeader />
       <div className="flex-1 container py-1 md:py-3">
         {children}
