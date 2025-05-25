@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, ArrowLeft } from "lucide-react";
 import { CreateTeamDialog } from "@/components/teams/create-team-dialog";
 import { JoinTeamDialog } from "@/components/teams/join-team-dialog";
 
@@ -62,17 +62,27 @@ export default function TeamSelectionPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Your Teams</h1>
-        <div className="space-x-4">
-          <Button onClick={() => setIsJoinTeamOpen(true)} variant="outline">
-            <Users className="mr-2 h-4 w-4" />
-            Join Team
-          </Button>
-          <Button onClick={() => setIsCreateTeamOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Team
-          </Button>
+      <div className="flex flex-col gap-6 mb-8">
+        <Button
+          variant="ghost"
+          className="w-fit"
+          onClick={() => router.push('/')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Landing Page
+        </Button>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Your Teams</h1>
+          <div className="space-x-4">
+            <Button onClick={() => setIsJoinTeamOpen(true)} variant="outline">
+              <Users className="mr-2 h-4 w-4" />
+              Join Team
+            </Button>
+            <Button onClick={() => setIsCreateTeamOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Team
+            </Button>
+          </div>
         </div>
       </div>
 
