@@ -445,59 +445,118 @@ export default function LandingPage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                  Testimonials
+                  Why TeamLane?
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                  Trusted by teams everywhere
+                  Built for Modern Teams
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  See what our customers have to say about TeamLane
+                  Discover how TeamLane transforms team collaboration
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-10">
-              {testimonials.map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  className="flex flex-col justify-between rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                >
+            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3 mt-10">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="flex flex-col justify-between rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              >
                 <div className="space-y-4">
-                  <div className="flex space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <svg
-                        key={i}
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="h-5 w-5 text-yellow-500"
-                      >
-                        <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z" />
-                      </svg>
-                    ))}
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-6 w-6 text-primary"
+                    >
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <line x1="10" y1="9" x2="8" y2="9" />
+                    </svg>
                   </div>
+                  <h3 className="text-xl font-bold">Organized Workflow</h3>
                   <p className="text-muted-foreground">
-                      &quot;{testimonial.quote}&quot;
+                    Keep your projects structured with intuitive boards and task management. Never lose track of what needs to be done.
                   </p>
                 </div>
-                <div className="mt-6 flex items-center space-x-4">
-                  <div className="rounded-full bg-primary/10 p-1">
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-primary font-medium">
-                        {testimonial.initials}
-                      </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="flex flex-col justify-between rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="space-y-4">
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-6 w-6 text-primary"
+                    >
+                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                      <path d="M12 8v8" />
+                      <path d="M8 12h8" />
+                    </svg>
                   </div>
-                  <div>
-                      <p className="text-sm font-medium">{testimonial.name}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-              </div>
+                  <h3 className="text-xl font-bold">Real-time Updates</h3>
+                  <p className="text-muted-foreground">
+                    Experience seamless collaboration with instant updates. Changes sync automatically across all team members.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="flex flex-col justify-between rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="space-y-4">
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-6 w-6 text-primary"
+                    >
+                      <path d="M20 7h-9" />
+                      <path d="M14 17H5" />
+                      <circle cx="17" cy="17" r="3" />
+                      <circle cx="7" cy="7" r="3" />
+                    </svg>
                   </div>
-                </motion.div>
-              ))}
+                  <h3 className="text-xl font-bold">Flexible Integration</h3>
+                  <p className="text-muted-foreground">
+                    Seamlessly integrate with your existing tools and workflows. Customize TeamLane to fit your team&apos;s needs.
+                  </p>
+                </div>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -509,118 +568,159 @@ export default function LandingPage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                  Pricing
+                  Getting Started
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                  Simple, transparent pricing
+                  Start Collaborating Today
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Choose the plan that&apos;s right for your team
+                  Begin your journey with TeamLane in three simple steps
                 </p>
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3 mt-10">
-              {pricingPlans.map((plan, index) => (
-                <motion.div 
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  className={`flex flex-col rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${plan.popular ? 'ring-1 ring-primary/30 shadow-lg' : ''}`}
-                >
-                <div className="space-y-2">
-                    {plan.popular && (
-                  <div className="inline-flex items-center rounded-full border border-primary px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-primary">
-                    Popular
-                  </div>
-                    )}
-                    <h3 className="text-2xl font-bold">{plan.name}</h3>
-                    <p className="text-muted-foreground">{plan.description}</p>
-                </div>
-                <div className="mt-4 flex items-baseline text-3xl font-bold">
-                    ${plan.price}<span className="ml-1 text-base font-normal text-muted-foreground">/month</span>
-                </div>
-                <ul className="mt-6 space-y-3">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-2 h-4 w-4 text-primary"
-                    >
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                        {feature}
-                  </li>
-                    ))}
-                </ul>
-                  <div className="mt-auto pt-6">
-                    <Button 
-                      className={`w-full hover:scale-105 transition-all duration-300 ${plan.popular ? 'bg-primary hover:bg-primary/90' : ''}`}
-                      variant={plan.popular ? 'default' : 'outline'}
-                    >
-                      {plan.buttonText}
-                    </Button>
-                </div>
-                </motion.div>
-              ))}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="flex flex-col rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="mb-4 text-4xl font-bold text-primary">1</div>
+                <h3 className="text-xl font-bold mb-2">Create Your Account</h3>
+                <p className="text-muted-foreground mb-4">
+                  Sign up for free and set up your team workspace in minutes
+                </p>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/register">Create Account</Link>
+                </Button>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="flex flex-col rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="mb-4 text-4xl font-bold text-primary">2</div>
+                <h3 className="text-xl font-bold mb-2">Invite Your Team</h3>
+                <p className="text-muted-foreground mb-4">
+                  Add team members and assign roles to start collaborating
+                </p>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="#features">Learn More</Link>
+                </Button>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="flex flex-col rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="mb-4 text-4xl font-bold text-primary">3</div>
+                <h3 className="text-xl font-bold mb-2">Start Working</h3>
+                <p className="text-muted-foreground mb-4">
+                  Create boards, assign tasks, and collaborate in real-time
+                </p>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/register">Get Started</Link>
+                </Button>
+              </motion.div>
             </div>
           </div>
         </section>
         
-        <section className="py-16 md:py-20 bg-primary relative overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-          <div className="absolute top-0 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          
-          <div className="container px-4 md:px-6 relative">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="flex flex-col items-center justify-center space-y-6 text-center"
-            >
-              <div className="space-y-3">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
-                  Ready to transform how your team works?
-                </h2>
-                <p className="mx-auto max-w-[700px] text-xl/relaxed text-primary-foreground/80">
-                  Join thousands of teams already using TeamLane to collaborate more effectively
+        <footer className="border-t bg-muted/50">
+          <div className="container px-4 py-12 md:py-16">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+              <div className="space-y-4">
+                <Link href="/" className="flex items-center space-x-2">
+                  <ImageWithFallback 
+                    src="/teamlane.svg" 
+                    fallbackSrc="/teamlane.png" 
+                    alt="TeamLane Logo" 
+                    className="h-8 w-auto" 
+                  />
+                  <div className="font-bold text-xl">TeamLane</div>
+                </Link>
+                <p className="text-sm text-muted-foreground">
+                  Empowering teams to work better together through seamless collaboration and organization.
                 </p>
               </div>
-              <div className="flex flex-col gap-3 min-[400px]:flex-row">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="bg-white text-primary hover:bg-white/90 transition-all duration-300 hover:scale-105 hover:shadow-lg" 
-                  asChild
-                >
-                  <Link href="/register">
-                    Get Started Free
-                    <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-                  </Link>
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white text-white hover:bg-primary-foreground/10 transition-all duration-300 hover:scale-105" 
-                  asChild
-                >
-                  <Link href="#features">Learn More</Link>
-                </Button>
+              
+              <div className="space-y-4">
+                <h4 className="font-semibold">Product</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>
+                    <Link href="/#features" className="hover:text-foreground transition-colors">Features</Link>
+                  </li>
+                  <li>
+                    <Link href="/register" className="hover:text-foreground transition-colors">Get Started</Link>
+                  </li>
+                  <li>
+                    <Link href="/login" className="hover:text-foreground transition-colors">Sign In</Link>
+                  </li>
+                </ul>
               </div>
-            </motion.div>
+
+              {/* <div className="space-y-4">
+                <h4 className="font-semibold">Resources</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>
+                    <Link href="/docs" className="hover:text-foreground transition-colors">Documentation</Link>
+                  </li>
+                  <li>
+                    <Link href="/help" className="hover:text-foreground transition-colors">Help Center</Link>
+                  </li>
+                  <li>
+                    <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>
+                  </li>
+                </ul>
+              </div> */}
+
+              <div className="space-y-4">
+                <h4 className="font-semibold">Legal</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>
+                    <Link href="/legal/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+                  </li>
+                  <li>
+                    <Link href="/legal/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+                  </li>
+                  <li>
+                    <Link href="/legal/security" className="hover:text-foreground transition-colors">Security</Link>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-12 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} TeamLane. All rights reserved.
+              </p>
+              <div className="flex items-center space-x-4">
+                <Link href="https://twitter.com" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                  </svg>
+                </Link>
+                <Link href="https://github.com" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                  </svg>
+                </Link>
+                <Link href="https://linkedin.com" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
           </div>
-        </section>
+        </footer>
       </main>
     </div>
   );
