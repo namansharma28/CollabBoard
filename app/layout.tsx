@@ -24,6 +24,7 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#6f42c1" />
+        <meta name="google-site-verification" content="4qgP4ffjaHbqpkY0w9tzvZ6_jN0X-Y39XxCuL2kztgY" />
       </head>
       <body className={inter.className}>
         <NextAuthProvider>

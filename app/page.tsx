@@ -11,6 +11,28 @@ import { motion } from "framer-motion";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import Image from "next/image";
 
+export const metadata = {
+  title: "TeamLane – All-in-One Collaborative Workspace",
+  description: "Manage tasks, notes, and team communication in real-time. Streamline your team's workflow with TeamLane.",
+  keywords: ["team collaboration", "kanban app", "project management", "real-time tasks", "TeamLane", "team notes", "workspace tool"],
+  openGraph: {
+    title: "TeamLane",
+    description: "Collaborate with your team, all in one space.",
+    url: "https://teamlane.vercel.app", // replace with your real URL
+    siteName: "TeamLane",
+    images: [
+      {
+        url: "/teamlane-screenshot.png", // Make a nice banner for social sharing
+        width: 1200,
+        height: 630,
+        alt: "TeamLane Screenshot",
+      },
+    ],
+    type: "website",
+  },
+};
+
+
 export default function LandingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
