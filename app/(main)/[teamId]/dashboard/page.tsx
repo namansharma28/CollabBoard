@@ -4,6 +4,7 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { LoadingPage } from "@/components/ui/loading-page";
 
 interface DashboardData {
   stats: {
@@ -76,7 +77,9 @@ export default function DashboardPage() {
     fetchTeamData();
   }, [teamId]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>
+    <LoadingPage />
+  </div>;
 
   // If no data is available, display a message
   if (!teamData) return <div>No dashboard data available.</div>;

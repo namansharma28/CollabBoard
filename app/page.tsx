@@ -459,20 +459,20 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3 mt-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                viewport={{ once: true, margin: "-50px" }}
-                className="flex flex-col justify-between rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
+                  viewport={{ once: true, margin: "-50px" }}
+                  className="flex flex-col justify-between rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                >
                 <div className="space-y-4">
                   <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
@@ -485,7 +485,7 @@ export default function LandingPage() {
                       <line x1="16" y1="13" x2="8" y2="13" />
                       <line x1="16" y1="17" x2="8" y2="17" />
                       <line x1="10" y1="9" x2="8" y2="9" />
-                    </svg>
+                      </svg>
                   </div>
                   <h3 className="text-xl font-bold">Organized Workflow</h3>
                   <p className="text-muted-foreground">
@@ -524,7 +524,7 @@ export default function LandingPage() {
                   <p className="text-muted-foreground">
                     Experience seamless collaboration with instant updates. Changes sync automatically across all team members.
                   </p>
-                </div>
+              </div>
               </motion.div>
 
               <motion.div
@@ -558,8 +558,8 @@ export default function LandingPage() {
                   <p className="text-muted-foreground">
                     Seamlessly integrate with your existing tools and workflows. Customize TeamLane to fit your team&apos;s needs.
                   </p>
-                </div>
-              </motion.div>
+                  </div>
+                </motion.div>
             </div>
           </div>
         </section>
@@ -582,11 +582,11 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3 mt-10">
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                <motion.div 
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                viewport={{ once: true, margin: "-50px" }}
+                  viewport={{ once: true, margin: "-50px" }}
                 className="flex flex-col rounded-xl border bg-background/80 backdrop-blur-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="mb-4 text-4xl font-bold text-primary">1</div>
@@ -630,8 +630,8 @@ export default function LandingPage() {
                 </p>
                 <Button variant="outline" className="w-full" asChild>
                   <Link href="/register">Get Started</Link>
-                </Button>
-              </motion.div>
+                    </Button>
+                </motion.div>
             </div>
           </div>
         </section>
@@ -719,7 +719,7 @@ export default function LandingPage() {
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                   </svg>
-                </Link>
+                  </Link>
               </div>
             </div>
           </div>

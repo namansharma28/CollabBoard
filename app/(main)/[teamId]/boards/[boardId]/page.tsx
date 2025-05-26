@@ -13,7 +13,7 @@ import { useSession } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
 import { toast } from "@/components/ui/use-toast";
 import { KanbanBoard } from '@/components/boards/kanban-board';
-
+import { LoadingPage } from "@/components/ui/loading-page";
 export interface Task {
   _id: string;
   title: string;
@@ -367,7 +367,9 @@ export default function BoardPage() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>
+    <LoadingPage />
+  </div>;
   if (!board) return <div>Board not found</div>;
   if (!viewMode) return <div>Loading board view...</div>;
 

@@ -28,6 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Loading } from "./ui/loading";
 
 interface TeamMember {
   userId?: string;
@@ -271,7 +272,7 @@ export function TeamMembersDialog({
           <div className="space-y-4 max-h-[300px] overflow-y-auto">
             <h3 className="text-sm font-medium">Current Members</h3>
             {isLoading ? (
-              <div className="text-center py-2">Loading members...</div>
+              <div className="text-center py-2"><Loading /></div>
             ) : (
               <div className="space-y-2">
                 {members.map((member) => (

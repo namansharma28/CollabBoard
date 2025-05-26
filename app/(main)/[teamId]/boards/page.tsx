@@ -8,6 +8,7 @@ import { Plus, Search } from "lucide-react";
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { BoardProps } from "@/components/boards/boards-list";
+import { LoadingPage } from "@/components/ui/loading-page";
 
 export default function BoardsPage() {
   const params = useParams() || {};
@@ -89,7 +90,9 @@ export default function BoardsPage() {
     return acc;
   }, {} as Record<string, number>);
 
-  if (loading) return <div>Loading...</div>;
+    if (loading) return <div>
+      <LoadingPage />
+    </div>;
 
   return (
     <div className="flex flex-col space-y-6">

@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Plus, Users, ArrowLeft } from "lucide-react";
 import { CreateTeamDialog } from "@/components/teams/create-team-dialog";
 import { JoinTeamDialog } from "@/components/teams/join-team-dialog";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 
 interface Team {
   _id: string;
@@ -56,10 +57,6 @@ export default function TeamSelectionPage() {
     router.push(`/${teamId}/dashboard`);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="flex flex-col gap-6 mb-8">
@@ -86,7 +83,8 @@ export default function TeamSelectionPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+        <LoadingOverlay isLoading={loading} />
         {teams.map((team) => (
           <Card 
             key={team._id} 

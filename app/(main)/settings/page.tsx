@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft } from "lucide-react";
-
+import { LoadingPage } from "@/components/ui/loading-page";
 interface UserSettings {
   name: string;
   email: string;
@@ -166,7 +166,9 @@ export default function UserSettingsPage() {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-full">Loading user settings...</div>;
+    return <div className="flex items-center justify-center h-full">
+      <LoadingPage />
+    </div>;
   }
 
   if (!session?.user) {

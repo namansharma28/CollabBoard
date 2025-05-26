@@ -18,7 +18,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { pusherClient } from "@/lib/pusher";
-
+import { LoadingPage } from "@/components/ui/loading-page";
 interface MessageType {
   _id: string;
   teamId: string;
@@ -249,7 +249,9 @@ export default function ChatPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>
+      <LoadingPage />
+    </div>;
   }
 
   return (

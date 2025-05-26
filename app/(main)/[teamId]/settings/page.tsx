@@ -13,7 +13,7 @@ import { toast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSession } from 'next-auth/react';
 import { TeamMembersDialog } from "@/components/TeamMembersDialog";
-
+import { LoadingPage } from '@/components/ui/loading-page';
 interface TeamData {
   _id: string;
   name: string;
@@ -340,7 +340,9 @@ export default function TeamSettingsPage() {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-full">Loading team settings...</div>;
+    return <div className="flex items-center justify-center h-full">
+      <LoadingPage />
+    </div>;
   }
 
   if (!teamData) {

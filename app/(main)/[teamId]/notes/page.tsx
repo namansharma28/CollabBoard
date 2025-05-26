@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CreateNoteDialog } from "@/components/CreateNoteDialog";
 import { NoteModal } from "@/components/NoteModal";
 import { formatDistanceToNow } from 'date-fns';
+import { LoadingPage } from '@/components/ui/loading-page';
 
 interface Note {
   _id: string;
@@ -99,7 +100,9 @@ export default function NotesPage() {
   };
 
   if (!teamId) return <div>Invalid team ID</div>;
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>
+  <LoadingPage />
+</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
 
 

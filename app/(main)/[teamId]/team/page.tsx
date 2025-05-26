@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { TeamMembersDialog } from "@/components/TeamMembersDialog";
 import { Users } from "lucide-react";
-
+import { LoadingPage } from '@/components/ui/loading-page';
 interface TeamMember {
   email: string;
   role: string;
@@ -58,7 +58,9 @@ export default function TeamPage() {
   }, [teamId]);
 
   if (!teamId) return <div>Invalid team ID</div>;
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>
+    <LoadingPage />
+  </div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
   if (!team) return <div>Team not found</div>;
   if (!team.members || team.members.length === 0) return <div>No members found</div>;
