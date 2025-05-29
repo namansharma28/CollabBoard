@@ -59,7 +59,8 @@ export const authOptions: AuthOptions = {
       }
     },
     async redirect({ url, baseUrl }) {
-      if (url.startsWith(baseUrl)) return url;
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
   },

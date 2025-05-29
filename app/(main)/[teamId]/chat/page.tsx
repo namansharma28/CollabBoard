@@ -178,7 +178,6 @@ export default function ChatPage() {
 
     // Clear input immediately for better UX
     setNewMessage("");
-    setReplyTo(null);
 
     // Optimistically update UI
     setMessages(prev => {
@@ -220,10 +219,16 @@ export default function ChatPage() {
           (msg.content === messageData.content && // Or match by content and timestamp
            msg.sender.email === messageData.sender.email &&
            Math.abs(new Date(msg.createdAt).getTime() - new Date(timestamp).getTime()) < 1000)
-            ? savedMessage 
+            ? {
+                ...savedMessage,
+                replyTo: messageData.replyTo // Ensure replyTo is preserved
+              }
             : msg
         )
       );
+
+      // Only clear reply state after successful message send
+      setReplyTo(null);
 
     } catch (error) {
       console.error("Error:", error);

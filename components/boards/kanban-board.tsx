@@ -32,10 +32,11 @@ interface KanbanBoardProps {
   tasks: Task[];
   onTaskUpdate: (taskId: string, updatedTask: Partial<Task>) => void;
   onTaskDelete: (taskId: string) => void;
+  activeTab: string;
   isAdmin?: boolean;
 }
 
-export function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, isAdmin = false }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, activeTab, isAdmin = false }: KanbanBoardProps) {
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [activeTask, setActiveTask] = React.useState<Task | null>(null);
   const [focusedColumn, setFocusedColumn] = useState<string | null>(null);
@@ -55,6 +56,11 @@ export function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, isAdmin = false
       },
     })
   );
+
+  // Filter tasks based on activeTab
+  const filteredTasks = activeTab === 'all' 
+    ? tasks 
+    : tasks.filter(task => task.status === activeTab);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -176,7 +182,7 @@ export function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, isAdmin = false
       >
         <div className="flex flex-1 gap-4 overflow-x-auto pb-4">
           {COLUMNS.map((column) => {
-            const columnTasks = tasks.filter((task) => task.status === column.id);
+            const columnTasks = filteredTasks.filter((task) => task.status === column.id);
             return (
               <KanbanColumn
                 key={column.id}

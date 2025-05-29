@@ -18,6 +18,7 @@ import { LogOut, User, Settings, Users, ArrowLeftRight } from "lucide-react";
 import { TeamMembersDialog } from "@/components/TeamMembersDialog";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
+import { toast } from "react-hot-toast";
 
 export function UserNav() {
   const params = useParams() || {};
@@ -39,8 +40,20 @@ export function UserNav() {
   }, [currentTeamId]);
   
   const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push('/');
+    try {
+      // Clear local storage
+      localStorage.removeItem("token");
+      localStorage.removeItem("lastVisitedTeamId");
+      
+      // Sign out from NextAuth with redirect
+      await signOut({ 
+        redirect: true,
+        callbackUrl: "/home"
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Error during logout");
+    }
   };
   
   // Get user initials for avatar fallback

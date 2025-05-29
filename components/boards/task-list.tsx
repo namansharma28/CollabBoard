@@ -41,8 +41,9 @@ import { useToast } from "@/components/ui/use-toast";
 
 interface TaskListProps {
   tasks: Task[];
-  onTaskUpdate?: (taskId: string, updates: Partial<Task>) => void;
-  onTaskDelete?: (taskId: string) => void;
+  onTaskUpdate: (taskId: string, updatedTask: Partial<Task>) => void;
+  onTaskDelete: (taskId: string) => void;
+  activeTab: string;
   isAdmin?: boolean;
 }
 
@@ -58,7 +59,7 @@ const STATUS_COLORS = {
   "done": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
 };
 
-export function TaskList({ tasks, onTaskUpdate, onTaskDelete, isAdmin = false }: TaskListProps) {
+export function TaskList({ tasks, onTaskUpdate, onTaskDelete, activeTab, isAdmin = false }: TaskListProps) {
   const params = useParams() || {};
   const teamId = params.teamId as string;
   const boardId = params.boardId as string;
@@ -74,6 +75,11 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, isAdmin = false }:
   const [focusedTaskIndex, setFocusedTaskIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const taskRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Filter tasks based on activeTab
+  const filteredTasks = activeTab === 'all' 
+    ? tasks 
+    : tasks.filter(task => task.status === activeTab);
 
   // Set up keyboard shortcuts for task management
   useEffect(() => {
@@ -368,7 +374,7 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, isAdmin = false }:
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        {tasks.map((task, index) => (
+        {filteredTasks.map((task, index) => (
           <Card 
             key={task._id} 
             className={`overflow-hidden ${focusedTaskIndex === index ? 'ring-2 ring-primary' : ''}`}

@@ -153,7 +153,7 @@ export async function POST(
     const body = await request.json();
     console.log("POST body:", body);
 
-    const { content, channel = 'general', recipient } = body;
+    const { content, channel = 'general', recipient, replyTo } = body;
     
     if (!content?.trim()) {
       return NextResponse.json({ error: "Message content is required" }, { status: 400 });
@@ -211,6 +211,11 @@ export async function POST(
     // Add recipient if it exists
     if (recipient) {
       message.recipient = recipient;
+    }
+
+    // Add replyTo if it exists
+    if (replyTo) {
+      message.replyTo = replyTo;
     }
 
     console.log("Inserting message:", message);

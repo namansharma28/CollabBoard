@@ -374,88 +374,58 @@ export default function BoardPage() {
   if (!viewMode) return <div>Loading board view...</div>;
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="flex flex-col space-y-6">
       <BoardHeader 
         board={board} 
-        tasksCount={{
-          total: tasks.length,
-          completed: tasks.filter(task => task.status === 'done').length
-        }}
+        isAdmin={isAdmin}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
-      
-      <div className="flex justify-between items-center mt-8 mb-4">
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="all">
-              All Tasks
-              <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                Alt+1
-              </kbd>
-            </TabsTrigger>
-            <TabsTrigger value="todo">
-              To Do
-              <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                Alt+2
-              </kbd>
-            </TabsTrigger>
-            <TabsTrigger value="in-progress">
-              In Progress
-              <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                Alt+3
-              </kbd>
-            </TabsTrigger>
-            <TabsTrigger value="done">
-              Completed
-              <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                Alt+4
-              </kbd>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="flex items-center gap-2 ml-4">
-          <Button
-            variant={viewMode === 'board' ? 'default' : 'outline'}
-            onClick={() => handleToggleView('board')}
+
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          {viewMode === 'list' && (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+              <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex">
+                <TabsTrigger value="all" className="text-xs sm:text-sm">All Tasks</TabsTrigger>
+                <TabsTrigger value="todo" className="text-xs sm:text-sm">To Do</TabsTrigger>
+                <TabsTrigger value="in-progress" className="text-xs sm:text-sm">In Progress</TabsTrigger>
+                <TabsTrigger value="done" className="text-xs sm:text-sm">Done</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+
+          <Button 
+            onClick={() => setCreateTaskOpen(true)}
+            className={`${viewMode === 'list' ? 'w-full sm:w-auto' : 'ml-auto'}`}
           >
-            Kanban
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
-            onClick={() => handleToggleView('list')}
-          >
-            List
-          </Button>
-          <Button onClick={() => setCreateTaskOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Task
-            <kbd className="ml-2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-              Alt+N
-            </kbd>
           </Button>
         </div>
+
+        {viewMode === 'board' ? (
+          <KanbanBoard 
+            tasks={tasks}
+            onTaskUpdate={handleTaskUpdate}
+            onTaskDelete={handleTaskDelete}
+            activeTab={activeTab}
+            isAdmin={isAdmin}
+          />
+        ) : (
+          <TaskList 
+            tasks={tasks}
+            onTaskUpdate={handleTaskUpdate}
+            onTaskDelete={handleTaskDelete}
+            activeTab={activeTab}
+            isAdmin={isAdmin}
+          />
+        )}
       </div>
-      
-      {socketStatus === 'connected' && (
-        <div className="text-xs text-green-600 mb-2 flex items-center">
-          <div className="h-2 w-2 bg-green-600 rounded-full mr-1"></div>
-          Real-time updates active
-        </div>
-      )}
-      
-      {viewMode === 'board' ? (
-        <KanbanBoard tasks={tasks} onTaskUpdate={handleTaskUpdate} onTaskDelete={handleTaskDelete} isAdmin={isAdmin} />
-      ) : (
-        <TaskList 
-          tasks={filteredTasks} 
-          onTaskUpdate={handleTaskUpdate}
-          onTaskDelete={handleTaskDelete}
-          isAdmin={isAdmin}
-        />
-      )}
-      
-      <CreateTaskDialog 
-        open={createTaskOpen} 
-        onOpenChange={setCreateTaskOpen} 
+
+      <CreateTaskDialog
+        open={createTaskOpen}
+        onOpenChange={setCreateTaskOpen}
         onCreateTask={handleCreateTask}
         boardId={boardId}
         teamId={teamId}
