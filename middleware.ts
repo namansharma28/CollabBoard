@@ -13,7 +13,13 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api') ||
     pathname.startsWith('/favicon.ico') ||
     pathname === '/home' ||
-    pathname.startsWith('/public')
+    pathname.startsWith('/teamlane') ||
+    pathname.startsWith('/animat') ||
+    pathname.endsWith('.svg') ||
+    pathname.endsWith('.png') ||
+    pathname.endsWith('.gif') ||
+    pathname.endsWith('.jpg') ||
+    pathname.endsWith('.jpeg')
   ) {
     return NextResponse.next();
   }
