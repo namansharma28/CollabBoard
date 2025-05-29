@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { MoreHorizontal, Calendar, Clock, Trash, Flag, Clock as ClockIcon } from "lucide-react";
-import { Task } from "@/app/(main)/[teamId]/boards/[boardId]/page";
+import { Task } from "@/lib/models/task";
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -47,16 +47,16 @@ interface TaskListProps {
   isAdmin?: boolean;
 }
 
-const PRIORITY_COLORS = {
-  low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  high: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-};
-
-const STATUS_COLORS = {
+const STATUS_COLORS: Record<Task['status'], string> = {
   "todo": "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
   "in-progress": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
   "done": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+};
+
+const PRIORITY_COLORS: Record<NonNullable<Task['priority']>, string> = {
+  low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+  high: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
 };
 
 export function TaskList({ tasks, onTaskUpdate, onTaskDelete, activeTab, isAdmin = false }: TaskListProps) {
@@ -463,12 +463,12 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, activeTab, isAdmin
             </CardHeader>
             <CardContent className="p-4 pt-3">
               <div className="flex flex-wrap gap-2 mb-3">
-                <Badge className={STATUS_COLORS[task.status]}>
+                <Badge className={STATUS_COLORS[task.status as Task['status']]}>
                   {task.status === "todo" ? "To Do" : 
                   task.status === "in-progress" ? "In Progress" : "Done"}
                 </Badge>
                 {task.priority && (
-                  <Badge variant="outline" className={PRIORITY_COLORS[task.priority]}>
+                  <Badge variant="outline" className={PRIORITY_COLORS[task.priority as NonNullable<Task['priority']>]}>
                     {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
                   </Badge>
                 )}

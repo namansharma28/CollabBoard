@@ -1,5 +1,5 @@
 import React from "react";
-import { Task } from "@/app/(main)/[teamId]/boards/[boardId]/page";
+import { Task } from "@/lib/models/task";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

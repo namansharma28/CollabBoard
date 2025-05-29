@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Task } from "@/app/(main)/[teamId]/boards/[boardId]/page";
+import { Task } from "@/lib/models/task";
 import {
   DndContext,
   DragEndEvent,

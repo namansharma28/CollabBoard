@@ -1,5 +1,5 @@
 import React from "react";
-import { Task } from "@/app/(main)/[teamId]/boards/[boardId]/page";
+import { Task } from "@/lib/models/task";
 import { KanbanTask } from "./kanban-task";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDroppable } from "@dnd-kit/core";

@@ -32,7 +32,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, Calendar } from "lucide-react";
-import { Task } from "@/app/(main)/[teamId]/boards/[boardId]/page";
+import { Task } from "@/lib/models/task";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -58,7 +58,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface CreateTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateTask?: (task: Omit<Task, '_id' | 'createdAt'>) => Promise<void>;
+  onCreateTask: (task: Omit<Task, '_id' | 'createdAt'>) => Promise<void>;
   boardId: string;
   teamId: string;
 }
@@ -92,7 +92,7 @@ export function CreateTaskDialog({
           description: values.description || "",
           status: values.status,
           priority: values.priority,
-          dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
+          dueDate: values.dueDate ? new Date(values.dueDate) : undefined,
           boardId,
         };
         

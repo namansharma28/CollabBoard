@@ -2,23 +2,39 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoreHorizontal, Star, LayoutGrid, List } from "lucide-react";
-import { BoardProps } from "./boards-list";
-import { Progress } from "@/components/ui/progress";
+import { Board } from "@/lib/models/board";
+import { Task } from "@/lib/models/task";
 import { useParams } from "next/navigation";
+import { Progress } from "@/components/ui/progress";
 
-interface BoardHeaderProps {
-  board: BoardProps;
+interface BoardProps {
+  board: {
+    title: string;
+    description?: string;
+    isStarred?: boolean;
+    category?: string;
+    members?: Array<{
+      id: string;
+      name: string;
+      avatar?: string;
+      initials: string;
+    }>;
+    tasks?: Task[];
+    completedTasks?: number;
+    totalTasks?: number;
+  };
   isAdmin: boolean;
   viewMode: 'board' | 'list' | null;
   onViewModeChange: (mode: 'board' | 'list') => void;
+  onUpdate: (board: any) => void;
 }
 
-export function BoardHeader({ board, isAdmin, viewMode, onViewModeChange }: BoardHeaderProps) {
+export function BoardHeader({ board, isAdmin, viewMode, onViewModeChange, onUpdate }: BoardProps) {
   const params = useParams() || {};
   
   const tasksCount = {
     total: board.tasks?.length || 0,
-    completed: board.tasks?.filter(task => task.status === 'done').length || 0
+    completed: board.tasks?.filter((task: Task) => task.status === 'done').length || 0
   };
 
   const completionPercentage = tasksCount.total > 0 

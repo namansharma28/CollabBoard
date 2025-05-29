@@ -14,33 +14,7 @@ import { useSocket } from "@/hooks/useSocket";
 import { toast } from "@/components/ui/use-toast";
 import { KanbanBoard } from '@/components/boards/kanban-board';
 import { LoadingPage } from "@/components/ui/loading-page";
-export interface Task {
-  _id: string;
-  title: string;
-  description?: string;
-  status: "todo" | "in-progress" | "done";
-  priority?: "low" | "medium" | "high";
-  assignee?: {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-    initials: string;
-  };
-  dueDate?: string;
-  createdAt: string;
-  boardId: string;
-  createdBy?: {
-    email: string;
-    name: string;
-  };
-  updatedAt?: string;
-  updatedBy?: {
-    email: string;
-    name: string;
-  };
-  statusChangeNote?: string;
-}
+import { Task } from "@/lib/models/task";
 
 export default function BoardPage() {
   const params = useParams() || {};
@@ -49,7 +23,21 @@ export default function BoardPage() {
   const { data: session } = useSession();
   const { socket, status: socketStatus, emitEvent, EVENTS } = useSocket(boardId);
   
-  const [board, setBoard] = useState<BoardProps | null>(null);
+  const [board, setBoard] = useState<{
+    title: string;
+    description?: string;
+    isStarred?: boolean;
+    category?: string;
+    members?: Array<{
+      id: string;
+      name: string;
+      avatar?: string;
+      initials: string;
+    }>;
+    tasks?: Task[];
+    completedTasks?: number;
+    totalTasks?: number;
+  } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
@@ -380,6 +368,7 @@ export default function BoardPage() {
         isAdmin={isAdmin}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        onUpdate={(updatedBoard) => setBoard(updatedBoard)}
       />
 
       <div className="space-y-4">
