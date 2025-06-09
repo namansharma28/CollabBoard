@@ -234,12 +234,14 @@ export default function LandingPage() {
           <div className="flex items-center space-x-2 pl-2 md:pl-4 lg:pl-3">
             <Link href="/home" className="flex items-center space-x-2 group">
               <div className="relative">
-                <ImageWithFallback 
-                  src="/teamlane.svg" 
-                  fallbackSrc="/teamlane.png" 
-                  alt="TeamLane Logo" 
-                  className="h-8 w-auto transition-transform group-hover:scale-110" 
-                />
+                <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                  <ImageWithFallback 
+                    src="/teamlane.svg" 
+                    fallbackSrc="/teamlane.png" 
+                    alt="TeamLane Logo" 
+                    className="h-5 w-auto"
+                  />
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-20 rounded-full blur-xl transition-opacity"></div>
               </div>
               <div className="font-bold text-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 bg-clip-text text-transparent">

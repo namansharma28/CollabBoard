@@ -64,23 +64,25 @@ export function TeamBreadcrumb() {
   const currentSection = getCurrentSection();
   
   return (
-    <div className="px-4 py-2 bg-background border-b">
+    <div className="px-4 py-3 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border-b border-purple-200/50 dark:border-purple-800/50">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/team-selection">
+              <Link href="/team-selection" className="flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
                 <Home className="h-4 w-4" />
                 <span className="sr-only">Teams</span>
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           
-          <BreadcrumbSeparator />
+          <BreadcrumbSeparator>
+            <ChevronRight className="h-4 w-4 text-purple-400 dark:text-purple-600" />
+          </BreadcrumbSeparator>
           
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/${teamId}/dashboard`}>
+              <Link href={`/${teamId}/dashboard`} className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
                 {isLoading ? "Loading..." : teamInfo?.name || `Team ${teamId.substring(0, 6)}...`}
               </Link>
             </BreadcrumbLink>
@@ -88,9 +90,13 @@ export function TeamBreadcrumb() {
           
           {currentSection && (
             <>
-              <BreadcrumbSeparator />
+              <BreadcrumbSeparator>
+                <ChevronRight className="h-4 w-4 text-purple-400 dark:text-purple-600" />
+              </BreadcrumbSeparator>
               <BreadcrumbItem>
-                <BreadcrumbPage>{currentSection}</BreadcrumbPage>
+                <BreadcrumbPage className="text-indigo-600 dark:text-indigo-400 font-medium">
+                  {currentSection}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </>
           )}
@@ -98,4 +104,4 @@ export function TeamBreadcrumb() {
       </Breadcrumb>
     </div>
   );
-} 
+}

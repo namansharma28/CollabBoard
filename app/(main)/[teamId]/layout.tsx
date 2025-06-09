@@ -14,7 +14,7 @@ export default function TeamLayout({
   return (
     <div className="flex flex-col">
       <TeamBreadcrumb />
-      <div className="py-1">
+      <div className="py-1 mx-5">
         {children}
       </div>
     </div>

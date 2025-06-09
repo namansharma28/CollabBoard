@@ -362,63 +362,71 @@ export default function BoardPage() {
   if (!viewMode) return <div>Loading board view...</div>;
 
   return (
-    <div className="flex flex-col space-y-6">
-      <BoardHeader 
-        board={board} 
-        isAdmin={isAdmin}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        onUpdate={(updatedBoard) => setBoard(updatedBoard)}
-      />
-
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          {viewMode === 'list' && (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-              <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex">
-                <TabsTrigger value="all" className="text-xs sm:text-sm">All Tasks</TabsTrigger>
-                <TabsTrigger value="todo" className="text-xs sm:text-sm">To Do</TabsTrigger>
-                <TabsTrigger value="in-progress" className="text-xs sm:text-sm">In Progress</TabsTrigger>
-                <TabsTrigger value="done" className="text-xs sm:text-sm">Done</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
-
-          <Button 
-            onClick={() => setCreateTaskOpen(true)}
-            className={`${viewMode === 'list' ? 'w-full sm:w-auto' : 'ml-auto'}`}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Task
-          </Button>
-        </div>
-
-        {viewMode === 'board' ? (
-          <KanbanBoard 
-            tasks={tasks}
-            onTaskUpdate={handleTaskUpdate}
-            onTaskDelete={handleTaskDelete}
-            activeTab={activeTab}
-            isAdmin={isAdmin}
-          />
-        ) : (
-          <TaskList 
-            tasks={tasks}
-            onTaskUpdate={handleTaskUpdate}
-            onTaskDelete={handleTaskDelete}
-            activeTab={activeTab}
-            isAdmin={isAdmin}
-          />
-        )}
+    <div className="flex flex-col space-y-6 bg-gradient-to-br from-purple-50/30 via-transparent to-indigo-50/30 dark:from-purple-950/20 dark:via-transparent dark:to-indigo-950/20 min-h-screen relative">
+      {/* Animated background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
       </div>
 
-      <CreateTaskDialog
-        open={createTaskOpen}
-        onOpenChange={setCreateTaskOpen}
-        onCreateTask={handleCreateTask}
-        boardId={boardId}
-        teamId={teamId}
-      />
+      <div className="relative z-10">
+        <BoardHeader 
+          board={board} 
+          isAdmin={isAdmin}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onUpdate={(updatedBoard) => setBoard(updatedBoard)}
+        />
+
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            {viewMode === 'list' && (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+                <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border border-purple-200/50 dark:border-purple-800/50">
+                  <TabsTrigger value="all" className="text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">All Tasks</TabsTrigger>
+                  <TabsTrigger value="todo" className="text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">To Do</TabsTrigger>
+                  <TabsTrigger value="in-progress" className="text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">In Progress</TabsTrigger>
+                  <TabsTrigger value="done" className="text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">Done</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+
+            <Button 
+              onClick={() => setCreateTaskOpen(true)}
+              className={`${viewMode === 'list' ? 'w-full sm:w-auto' : 'ml-auto'} bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Task
+            </Button>
+          </div>
+
+          {viewMode === 'board' ? (
+            <KanbanBoard 
+              tasks={tasks}
+              onTaskUpdate={handleTaskUpdate}
+              onTaskDelete={handleTaskDelete}
+              activeTab={activeTab}
+              isAdmin={isAdmin}
+            />
+          ) : (
+            <TaskList 
+              tasks={tasks}
+              onTaskUpdate={handleTaskUpdate}
+              onTaskDelete={handleTaskDelete}
+              activeTab={activeTab}
+              isAdmin={isAdmin}
+            />
+          )}
+        </div>
+
+        <CreateTaskDialog
+          open={createTaskOpen}
+          onOpenChange={setCreateTaskOpen}
+          onCreateTask={handleCreateTask}
+          boardId={boardId}
+          teamId={teamId}
+        />
+      </div>
     </div>
   );
-} 
+}
