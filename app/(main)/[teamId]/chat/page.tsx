@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send } from "lucide-react";
+import { Send, MessageSquare, Hash } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { pusherClient } from "@/lib/pusher";
 import { LoadingPage } from "@/components/ui/loading-page";
+import { motion } from "framer-motion";
+
 interface MessageType {
   _id: string;
   teamId: string;
@@ -239,10 +241,10 @@ export default function ChatPage() {
   };
 
   const channels = [
-    { id: "general", name: "General" },
-    { id: "development", name: "Development" },
-    { id: "design", name: "Design" },
-    { id: "marketing", name: "Marketing" },
+    { id: "general", name: "General", icon: <Hash className="h-4 w-4" /> },
+    { id: "development", name: "Development", icon: <Hash className="h-4 w-4" /> },
+    { id: "design", name: "Design", icon: <Hash className="h-4 w-4" /> },
+    { id: "marketing", name: "Marketing", icon: <Hash className="h-4 w-4" /> },
   ];
 
   const formatMessageTime = (dateString: string) => {
@@ -260,132 +262,228 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col space-y-6">
-      <div className="grid gap-4 mb-2 w-full max-w-full overflow-hidden">
-        <Card className="max-w-full">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              # {currentChannel}
-              {isConnected && (
-                <div className="h-2 w-2 bg-green-500 rounded-full" title="Connected to chat server"></div>
-              )}
-              {!isConnected && (
-                <div className="h-2 w-2 bg-red-500 rounded-full" title="Disconnected from chat server"></div>
-              )}
-            </CardTitle>
-            <CardDescription>
-              Channel for {currentChannel} team discussion
-              {!isConnected && (
-                <span className="text-red-500 text-xs ml-2">(Connecting to chat server...)</span>
-              )}
-            </CardDescription>
-            <div className="text-xs mt-1 text-muted-foreground">
-              Press <kbd className="px-1 py-0.5 text-xs rounded border bg-muted font-mono">Alt+M</kbd> to quickly focus the message input
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[450px] pr-4 relative">
-              <div className="space-y-6 pb-16" ref={scrollAreaRef}>
-                {messages.map((msg) => (
-                  <div
-                    key={msg._id}
-                    className={`flex items-start gap-4 ${
-                      msg.sender.email === session?.user?.email
-                        ? "justify-end"
-                        : ""
-                    }`}
-                  >
-                    {msg.sender.email !== session?.user?.email && (
-                      <Avatar>
-                        <AvatarImage src={msg.sender.avatar} />
-                        <AvatarFallback>{msg.sender.initials}</AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div className={`grid gap-1.5 ${
-                      msg.sender.email === session?.user?.email ? 'text-right' : ''
-                    }`}>
-                      <div className="flex items-center gap-2">
-                        <div className="font-semibold">{msg.sender.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatMessageTime(msg.createdAt)}
-                        </div>
-                      </div>
-                      
-                      {/* Reply content if exists */}
-                      {msg.replyTo && (
-                        <div className="mb-1 p-2 border-l-4 border-primary bg-muted rounded text-xs text-left">
-                          <span className="font-semibold">{msg.replyTo.senderName}:</span> {msg.replyTo.content}
-                        </div>
-                      )}
-                      
-                      {/* Actual message */}
-                      <div className={`px-4 py-2 rounded-lg ${
-                        msg.sender.email === session?.user?.email 
-                          ? 'bg-primary text-primary-foreground ml-auto'
-                          : 'bg-muted'
-                      }`}>
-                        {msg.content}
-                      </div>
-                      
-                      {/* Reply button */}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-xs self-start"
-                        onClick={() => setReplyTo(msg)}
-                      >
-                        Reply
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Fixed position reply box inside ScrollArea */}
-              {replyTo && (
-                <div className="absolute bottom-0 left-0 right-4 bg-background p-2 border-t">
-                  <div className="p-2 border-l-4 border-primary bg-muted/80 rounded-sm relative">
-                    <div className="flex justify-between items-start">
-                      <div className="pr-10 max-w-full">
-                        <div className="text-xs text-muted-foreground mb-1">
-                          Replying to <b>{replyTo.sender.name || replyTo.sender.email}</b>
-                        </div>
-                        <div className="text-sm truncate">{replyTo.content}</div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="absolute top-1 right-1 h-6 w-6 p-0"
-                        onClick={() => setReplyTo(null)}
-                      >
-                        &times;
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </ScrollArea>
-            <div className="pt-6">
-              <form onSubmit={handleSendMessage} className="flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    placeholder="Type your message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    ref={messageInputRef}
-                    className="pr-16"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">
-                    Alt+M
-                  </div>
-                </div>
-                <Button type="submit" size="icon" disabled={!newMessage.trim() || !isConnected}>
-                  <Send className="h-4 w-4" />
+    <div className="flex flex-col space-y-6 bg-gradient-to-br from-purple-50/30 via-transparent to-indigo-50/30 dark:from-purple-950/20 dark:via-transparent dark:to-indigo-950/20 min-h-screen">
+      {/* Header */}
+
+      <div className="grid gap-6 lg:grid-cols-4">
+        {/* Channel Sidebar */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="lg:col-span-1"
+        >
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="flex items-center gap-4"
+      >
+        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+          <MessageSquare className="h-6 w-6 text-white" />
+        </div>
+        <div className="flex flex-col gap-2 py-2">
+          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            Team Chat
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Communicate with your team in real-time
+          </p>
+        </div>
+      </motion.div>
+          <Card className="border-purple-200/50 dark:border-purple-800/50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-purple-700 dark:text-purple-300">Channels</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {channels.map((channel) => (
+                <Button
+                  key={channel.id}
+                  variant={currentChannel === channel.id ? "default" : "ghost"}
+                  className={`w-full justify-start transition-all duration-300 ${
+                    currentChannel === channel.id 
+                      ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg' 
+                      : 'hover:bg-purple-50 dark:hover:bg-purple-950/50'
+                  }`}
+                  onClick={() => setCurrentChannel(channel.id)}
+                >
+                  {channel.icon}
+                  <span className="ml-2">{channel.name}</span>
                 </Button>
-              </form>
-            </div>
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Chat Area */}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="lg:col-span-3"
+        >
+          <Card className="border-purple-200/50 dark:border-purple-800/50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm shadow-xl">
+            <CardHeader className="border-b border-purple-200/50 dark:border-purple-800/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                    <Hash className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                      #{currentChannel}
+                    </CardTitle>
+                    <CardDescription>
+                      Channel for {currentChannel} team discussion
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isConnected ? (
+                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-medium">Connected</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                      <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+                      <span className="text-xs font-medium">Connecting...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="text-xs mt-2 text-muted-foreground bg-purple-50 dark:bg-purple-950/50 px-3 py-1 rounded-full inline-block">
+                Press <kbd className="px-1 py-0.5 text-xs rounded border bg-white dark:bg-slate-800 font-mono">Alt+M</kbd> to quickly focus the message input
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[500px] p-6 relative">
+                <div className="space-y-6 pb-16" ref={scrollAreaRef}>
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`flex items-start gap-4 ${
+                        msg.sender.email === session?.user?.email
+                          ? "justify-end"
+                          : ""
+                      }`}
+                    >
+                      {msg.sender.email !== session?.user?.email && (
+                        <Avatar className="border-2 border-purple-200 dark:border-purple-800">
+                          <AvatarImage src={msg.sender.avatar || undefined} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white">
+                            {msg.sender.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div className={`grid gap-2 max-w-[70%] ${
+                        msg.sender.email === session?.user?.email ? 'text-right' : ''
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <div className="font-semibold text-purple-700 dark:text-purple-300">
+                            {msg.sender.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatMessageTime(msg.createdAt)}
+                          </div>
+                        </div>
+                        
+                        {/* Reply content if exists */}
+                        {msg.replyTo && (
+                          <div className="mb-2 p-3 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-950/50 rounded-r text-xs text-left">
+                            <span className="font-semibold text-purple-700 dark:text-purple-300">
+                              {msg.replyTo.senderName}:
+                            </span> {msg.replyTo.content}
+                          </div>
+                        )}
+                        
+                        {/* Actual message */}
+                        <div className={`px-4 py-3 rounded-2xl shadow-sm ${
+                          msg.sender.email === session?.user?.email 
+                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white ml-auto'
+                            : 'bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50 border border-purple-200/50 dark:border-purple-800/50'
+                        }`}>
+                          {msg.content}
+                        </div>
+                        
+                        {/* Reply button */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs self-start hover:bg-purple-50 dark:hover:bg-purple-950/50 text-purple-600 dark:text-purple-400"
+                          onClick={() => setReplyTo(msg)}
+                        >
+                          Reply
+                        </Button>
+                      </div>
+                      
+                      {msg.sender.email === session?.user?.email && (
+                        <Avatar className="border-2 border-purple-200 dark:border-purple-800">
+                          <AvatarImage src={msg.sender.avatar || undefined} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white">
+                            {msg.sender.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+                
+                {/* Fixed position reply box inside ScrollArea */}
+                {replyTo && (
+                  <div className="absolute bottom-0 left-0 right-4 bg-white dark:bg-slate-950 p-4 border-t border-purple-200/50 dark:border-purple-800/50 backdrop-blur-sm">
+                    <div className="p-3 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-950/50 rounded-r relative">
+                      <div className="flex justify-between items-start">
+                        <div className="pr-10 max-w-full">
+                          <div className="text-xs text-purple-700 dark:text-purple-300 mb-1">
+                            Replying to <b>{replyTo.sender.name || replyTo.sender.email}</b>
+                          </div>
+                          <div className="text-sm truncate">{replyTo.content}</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute top-1 right-1 h-6 w-6 p-0 hover:bg-purple-100 dark:hover:bg-purple-900"
+                          onClick={() => setReplyTo(null)}
+                        >
+                          &times;
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </ScrollArea>
+              
+              <div className="p-6 border-t border-purple-200/50 dark:border-purple-800/50 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 dark:from-purple-950/20 dark:to-indigo-950/20">
+                <form onSubmit={handleSendMessage} className="flex gap-3">
+                  <div className="relative flex-1">
+                    <Input
+                      placeholder="Type your message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      ref={messageInputRef}
+                      className="pr-16 border-purple-200/50 dark:border-purple-800/50 focus:ring-purple-500 bg-white/80 dark:bg-slate-950/80"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded border border-purple-200 dark:border-purple-800">
+                      Alt+M
+                    </div>
+                  </div>
+                  <Button 
+                    type="submit" 
+                    size="icon" 
+                    disabled={!newMessage.trim() || !isConnected}
+                    className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );
