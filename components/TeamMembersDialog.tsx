@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Copy, UserMinus, UserPlus, LogOut } from "lucide-react";
+import { Copy, UserMinus, UserPlus, LogOut, Users, Crown, Mail, Calendar } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loading } from "./ui/loading";
+import { motion } from "framer-motion";
 
 interface TeamMember {
   userId?: string;
@@ -210,33 +211,46 @@ export function TeamMembersDialog({
     }
   };
 
+  const adminMembers = members.filter(member => member.role === 'admin');
+  const regularMembers = members.filter(member => member.role === 'member');
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl border-purple-200/50 dark:border-purple-800/50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Team Members</DialogTitle>
-            <DialogDescription>
-              Manage your team members and invitations.
-            </DialogDescription>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                <Users className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  Team Members
+                </DialogTitle>
+                <DialogDescription>
+                  Manage your team members and invitations
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
           {isAdmin && (
-            <div className="space-y-4 py-2 pb-4">
-              <div className="space-y-2">
-                <Label htmlFor="teamCode">Team Join Code</Label>
-                <div className="flex items-center space-x-2">
+            <div className="space-y-6 py-4 border-b border-purple-200/50 dark:border-purple-800/50">
+              <div className="space-y-3">
+                <Label htmlFor="teamCode" className="text-sm font-medium">Team Join Code</Label>
+                <div className="flex items-center space-x-3">
                   <Input
                     id="teamCode"
                     value={joinCode}
                     readOnly
-                    className="flex-1"
+                    className="flex-1 font-mono text-center text-lg tracking-widest border-purple-200/50 dark:border-purple-800/50 bg-purple-50/50 dark:bg-purple-950/20"
                   />
                   <Button 
                     type="button" 
                     size="icon" 
                     variant="outline" 
                     onClick={handleCopyCode}
+                    className="border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-950/50"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -246,21 +260,22 @@ export function TeamMembersDialog({
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="inviteEmail">Add by Email</Label>
-                <div className="flex items-center space-x-2">
+              <div className="space-y-3">
+                <Label htmlFor="inviteEmail" className="text-sm font-medium">Add by Email</Label>
+                <div className="flex items-center space-x-3">
                   <Input
                     id="inviteEmail"
                     type="email"
                     placeholder="colleague@example.com"
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
-                    className="flex-1"
+                    className="flex-1 border-purple-200/50 dark:border-purple-800/50 focus:ring-purple-500"
                   />
                   <Button 
                     type="button" 
                     size="icon" 
                     onClick={handleInvite}
+                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
                   >
                     <UserPlus className="h-4 w-4" />
                   </Button>
@@ -269,54 +284,141 @@ export function TeamMembersDialog({
             </div>
           )}
 
-          <div className="space-y-4 max-h-[300px] overflow-y-auto">
-            <h3 className="text-sm font-medium">Current Members</h3>
+          <div className="space-y-6 max-h-[400px] overflow-y-auto">
             {isLoading ? (
-              <div className="text-center py-2"><Loading /></div>
+              <div className="text-center py-8">
+                <Loading />
+                <p className="text-sm text-muted-foreground mt-2">Loading team members...</p>
+              </div>
             ) : (
-              <div className="space-y-2">
-                {members.map((member) => (
-                  <div
-                    key={member.email}
-                    className="flex items-center justify-between p-2 rounded-md border"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{member.name || member.email}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {member.role} • {new Date(member.joinedAt).toLocaleDateString()}
-                        </p>
-                      </div>
+              <div className="space-y-6">
+                {/* Administrators */}
+                {adminMembers.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Crown className="h-4 w-4 text-yellow-600" />
+                      <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                        Administrators ({adminMembers.length})
+                      </h3>
                     </div>
-                    {isAdmin && member.email !== session?.user?.email && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveMember(member.email)}
-                      >
-                        <UserMinus className="h-4 w-4 text-red-500" />
-                      </Button>
-                    )}
+                    <div className="space-y-3">
+                      {adminMembers.map((member, index) => (
+                        <motion.div
+                          key={member.email}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                          className="flex items-center justify-between p-3 rounded-lg border border-purple-200/50 dark:border-purple-800/50 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 dark:from-purple-950/20 dark:to-indigo-950/20"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="relative">
+                              <Avatar className="h-10 w-10 border-2 border-purple-200 dark:border-purple-800">
+                                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white font-semibold">
+                                  {getInitials(member.name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                                <Crown className="h-2.5 w-2.5 text-white" />
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{member.name || member.email}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                <span>{member.email}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                <span>Joined {new Date(member.joinedAt).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                          {isAdmin && member.email !== session?.user?.email && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemoveMember(member.email)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
+                            >
+                              <UserMinus className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
+
+                {/* Regular Members */}
+                {regularMembers.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Users className="h-4 w-4 text-indigo-600" />
+                      <h3 className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                        Members ({regularMembers.length})
+                      </h3>
+                    </div>
+                    <div className="space-y-3">
+                      {regularMembers.map((member, index) => (
+                        <motion.div
+                          key={member.email}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: (adminMembers.length + index) * 0.1 }}
+                          className="flex items-center justify-between p-3 rounded-lg border border-indigo-200/50 dark:border-indigo-800/50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-10 w-10 border-2 border-indigo-200 dark:border-indigo-800">
+                              <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-semibold">
+                                {getInitials(member.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-medium">{member.name || member.email}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                <span>{member.email}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                <span>Joined {new Date(member.joinedAt).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemoveMember(member.email)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
+                            >
+                              <UserMinus className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          <DialogFooter className="flex justify-between items-center">
+          <DialogFooter className="flex justify-between items-center border-t border-purple-200/50 dark:border-purple-800/50 pt-4">
             <Button 
               type="button" 
-              variant="destructive" 
+              variant="outline" 
               onClick={() => setLeaveConfirmOpen(true)}
-              size="sm"
+              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/50"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Leave Team
             </Button>
-            <Button type="button" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              onClick={() => onOpenChange(false)}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+            >
               Close
             </Button>
           </DialogFooter>
@@ -324,16 +426,24 @@ export function TeamMembersDialog({
       </Dialog>
 
       <AlertDialog open={leaveConfirmOpen} onOpenChange={setLeaveConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-red-200/50 dark:border-red-800/50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to leave this team?</AlertDialogTitle>
+            <AlertDialogTitle className="text-red-600 dark:text-red-400">
+              Are you sure you want to leave this team?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. You will need to be invited back to rejoin the team.
+              You will lose access to all team resources and will need to be invited again to rejoin.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLeaveTeam} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogCancel className="border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-950/50">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleLeaveTeam} 
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
               Leave Team
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -341,4 +451,4 @@ export function TeamMembersDialog({
       </AlertDialog>
     </>
   );
-} 
+}

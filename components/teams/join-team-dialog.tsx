@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Users, UserPlus } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
@@ -85,16 +85,25 @@ export function JoinTeamDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[400px] border-purple-200/50 dark:border-purple-800/50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm">
         <DialogHeader>
-          <DialogTitle>Join Team</DialogTitle>
-          <DialogDescription>
-            Enter the team code to join an existing workspace
-          </DialogDescription>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+              <UserPlus className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Join Team
+              </DialogTitle>
+              <DialogDescription>
+                Enter the team code to join an existing workspace
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="code"
@@ -108,6 +117,7 @@ export function JoinTeamDialog({
                       value={field.value.toUpperCase()}
                       onChange={e => field.onChange(e.target.value.toUpperCase())}
                       maxLength={6}
+                      className="border-purple-200/50 dark:border-purple-800/50 focus:ring-purple-500 text-center text-lg font-mono tracking-widest"
                     />
                   </FormControl>
                   <FormMessage />
@@ -115,18 +125,30 @@ export function JoinTeamDialog({
               )}
             />
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
+            <DialogFooter className="gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenChange(false)} 
+                type="button"
+                className="border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-950/50"
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Joining...
                   </>
                 ) : (
-                  "Join Team"
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Join Team
+                  </>
                 )}
               </Button>
             </DialogFooter>
